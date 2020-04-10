@@ -8,13 +8,15 @@
   "main": "index.js",
   "scripts": {
     "server": "npx nodemon server.js",
-    "client" : "elm-live src/Main.elm --hot --start-page=index.html -- --output=main.js --debug"
+    "client": "elm-live src/Main.elm --hot --start-page=./dev/index.html -- --output=./dev/main.js --debug",
+    "make": "elm make src/Main.elm --output=./public/js/main.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "node-static": "^0.7.11",
     "socket.io": "^2.3.0"
   }
 }
