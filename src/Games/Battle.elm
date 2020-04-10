@@ -17,7 +17,7 @@ battleCard =
     , SixClubs 6
     , SevenClubs 7
     , HeightClubs 8
-    , NiveClubs 9
+    , NineClubs 9
     , TenClubs 10
     , ValetClubs 11
     , ReineClubs 12
@@ -30,7 +30,7 @@ battleCard =
     , SixDiamond 6
     , SevenDiamond 7
     , HeightDiamond 8
-    , NiveDiamond 9
+    , NineDiamond 9
     , TenDiamond 10
     , ValetDiamond 11
     , ReineDiamond 12
@@ -43,7 +43,7 @@ battleCard =
     , SixHearts 6
     , SevenHearts 7
     , HeightHearts 8
-    , NiveHearts 9
+    , NineHearts 9
     , TenHearts 10
     , ValetHearts 11
     , ReineHearts 12
@@ -56,7 +56,7 @@ battleCard =
     , SixSpades 6
     , SevenSpades 7
     , HeightSpades 8
-    , NiveSpades 9
+    , NineSpades 9
     , TenSpades 10
     , ValetSpades 11
     , ReineSpades 12
@@ -88,12 +88,20 @@ endTurn game =
                             |> addCardsToPlayerDiscard position (others  |> List.map .lastCard |> (::) lastCard)
                             |> Dict.map (\_ -> \player -> { player | currentCard = Nothing })
                 }
+                    |> next
 
             Nothing ->
                 game
 
     else
         game
+next : Game -> Game
+next game =
+    if game.playerTurn == (Dict.size game.players - 1) then
+        { game | playerTurn = 0 }
+
+    else
+        { game | playerTurn = game.playerTurn + 1 }
 
 
 endGame: Game -> Maybe Player

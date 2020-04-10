@@ -1,17 +1,3 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Main</title>
-  <style>body { padding: 0; margin: 0; }</style>
-</head>
-
-<body>
-
-<pre id="elm"></pre>
-
-<script>
-try {
 (function(scope){
 'use strict';
 
@@ -10597,9 +10583,19 @@ var $elm$core$Basics$never = function (_v0) {
 };
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Game$NotStarted = {$: 'NotStarted'};
-var $author$project$Main$initialModel = $author$project$Game$NotStarted;
+var $author$project$Main$initialModel = {gameState: $author$project$Game$NotStarted, playerIndex: 0, playerName: ''};
+var $author$project$Main$UpdateGame = function (a) {
+	return {$: 'UpdateGame', a: a};
+};
 var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Main$updateGame = _Platform_incomingPort('updateGame', $elm$json$Json$Decode$value);
+var $author$project$Main$subscriptions = function (_v0) {
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$author$project$Main$updateGame($author$project$Main$UpdateGame)
+			]));
+};
 var $author$project$Game$EachPlayer = {$: 'EachPlayer'};
 var $author$project$Main$Start = function (a) {
 	return {$: 'Start', a: a};
@@ -10640,17 +10636,17 @@ var $author$project$Card$HeightHearts = function (a) {
 var $author$project$Card$HeightSpades = function (a) {
 	return {$: 'HeightSpades', a: a};
 };
-var $author$project$Card$NiveClubs = function (a) {
-	return {$: 'NiveClubs', a: a};
+var $author$project$Card$NineClubs = function (a) {
+	return {$: 'NineClubs', a: a};
 };
-var $author$project$Card$NiveDiamond = function (a) {
-	return {$: 'NiveDiamond', a: a};
+var $author$project$Card$NineDiamond = function (a) {
+	return {$: 'NineDiamond', a: a};
 };
-var $author$project$Card$NiveHearts = function (a) {
-	return {$: 'NiveHearts', a: a};
+var $author$project$Card$NineHearts = function (a) {
+	return {$: 'NineHearts', a: a};
 };
-var $author$project$Card$NiveSpades = function (a) {
-	return {$: 'NiveSpades', a: a};
+var $author$project$Card$NineSpades = function (a) {
+	return {$: 'NineSpades', a: a};
 };
 var $author$project$Card$OneClubs = function (a) {
 	return {$: 'OneClubs', a: a};
@@ -10770,7 +10766,7 @@ var $author$project$Games$Battle$battleCard = _List_fromArray(
 		$author$project$Card$SixClubs(6),
 		$author$project$Card$SevenClubs(7),
 		$author$project$Card$HeightClubs(8),
-		$author$project$Card$NiveClubs(9),
+		$author$project$Card$NineClubs(9),
 		$author$project$Card$TenClubs(10),
 		$author$project$Card$ValetClubs(11),
 		$author$project$Card$ReineClubs(12),
@@ -10783,7 +10779,7 @@ var $author$project$Games$Battle$battleCard = _List_fromArray(
 		$author$project$Card$SixDiamond(6),
 		$author$project$Card$SevenDiamond(7),
 		$author$project$Card$HeightDiamond(8),
-		$author$project$Card$NiveDiamond(9),
+		$author$project$Card$NineDiamond(9),
 		$author$project$Card$TenDiamond(10),
 		$author$project$Card$ValetDiamond(11),
 		$author$project$Card$ReineDiamond(12),
@@ -10796,7 +10792,7 @@ var $author$project$Games$Battle$battleCard = _List_fromArray(
 		$author$project$Card$SixHearts(6),
 		$author$project$Card$SevenHearts(7),
 		$author$project$Card$HeightHearts(8),
-		$author$project$Card$NiveHearts(9),
+		$author$project$Card$NineHearts(9),
 		$author$project$Card$TenHearts(10),
 		$author$project$Card$ValetHearts(11),
 		$author$project$Card$ReineHearts(12),
@@ -10809,35 +10805,459 @@ var $author$project$Games$Battle$battleCard = _List_fromArray(
 		$author$project$Card$SixSpades(6),
 		$author$project$Card$SevenSpades(7),
 		$author$project$Card$HeightSpades(8),
-		$author$project$Card$NiveSpades(9),
+		$author$project$Card$NineSpades(9),
 		$author$project$Card$TenSpades(10),
 		$author$project$Card$ValetSpades(11),
 		$author$project$Card$ReineSpades(12),
 		$author$project$Card$RoiSpades(13)
 	]);
+var $author$project$Game$WaitingForOpponent = function (a) {
+	return {$: 'WaitingForOpponent', a: a};
+};
+var $author$project$Game$create = function (name) {
+	return $author$project$Game$WaitingForOpponent(name);
+};
+var $author$project$Game$Game = F4(
+	function (discard, cards, playerTurn, players) {
+		return {cards: cards, discard: discard, playerTurn: playerTurn, players: players};
+	});
+var $author$project$Game$Player = F5(
+	function (name, hand, discard, position, currentCard) {
+		return {currentCard: currentCard, discard: discard, hand: hand, name: name, position: position};
+	});
 var $author$project$Game$Started = function (a) {
 	return {$: 'Started', a: a};
 };
-var $author$project$Game$create = F3(
-	function (discardMode, cards, names) {
-		return $author$project$Game$Started(
-			{
-				cards: cards,
-				discard: _List_Nil,
-				discardMode: discardMode,
-				playerTurn: 0,
-				players: $elm$core$Dict$fromList(
+var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$fail = _Json_fail;
+var $author$project$Card$decoder = A2(
+	$elm$json$Json$Decode$andThen,
+	function (card) {
+		switch (card) {
+			case 'One Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$OneClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Two Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TwoClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Three Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ThreeClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Four Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FourClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Five Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FiveClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Six Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SixClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Seven Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SevenClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Height Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$HeightClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Nine Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$NineClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Ten Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TenClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Valet Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ValetClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Reine Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ReineClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Roi Clubs':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$RoiClubs,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'One Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$OneDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Two Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TwoDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Three Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ThreeDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Four Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FourDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Five Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FiveDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Six Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SixDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Seven Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SevenDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Height Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$HeightDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Nine Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$NineDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Ten Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TenDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Valet Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ValetDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Reine Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ReineDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Roi Diamond':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$RoiDiamond,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'One Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$OneHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Two Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TwoHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Three Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ThreeHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Four Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FourHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Five Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FiveHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Six Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SixHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Seven Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SevenHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Height Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$HeightHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Nine Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$NineHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Ten Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TenHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Valet Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ValetHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Reine Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ReineHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Roi Hearts':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$RoiHearts,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'One Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$OneSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Two Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TwoSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Three Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ThreeSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Four Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FourSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Five Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$FiveSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Six Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SixSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Seven Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$SevenSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Height Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$HeightSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Nine Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$NineSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Ten Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$TenSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Valet Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ValetSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Reine Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$ReineSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			case 'Roi Spades':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Card$RoiSpades,
+					A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$int));
+			default:
+				return $elm$json$Json$Decode$fail('Invalide card' + card);
+		}
+	},
+	A2($elm$json$Json$Decode$field, 'card', $elm$json$Json$Decode$string));
+var $elm$json$Json$Decode$map4 = _Json_map4;
+var $elm$json$Json$Decode$null = _Json_decodeNull;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $elm$json$Json$Decode$nullable = function (decoder) {
+	return $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				$elm$json$Json$Decode$null($elm$core$Maybe$Nothing),
+				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder)
+			]));
+};
+var $author$project$Game$decoder = A2(
+	$elm$json$Json$Decode$andThen,
+	function (s) {
+		switch (s) {
+			case 'started':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Game$Started,
 					A2(
-						$elm$core$List$indexedMap,
-						function (i) {
-							return function (n) {
-								return _Utils_Tuple2(
-									i,
-									{currentCard: $elm$core$Maybe$Nothing, discard: _List_Nil, hand: _List_Nil, name: n, position: i});
-							};
-						},
-						names))
-			});
+						$elm$json$Json$Decode$field,
+						'game',
+						A5(
+							$elm$json$Json$Decode$map4,
+							$author$project$Game$Game,
+							A2(
+								$elm$json$Json$Decode$field,
+								'discard',
+								$elm$json$Json$Decode$list($author$project$Card$decoder)),
+							A2(
+								$elm$json$Json$Decode$field,
+								'cards',
+								$elm$json$Json$Decode$list($author$project$Card$decoder)),
+							A2($elm$json$Json$Decode$field, 'playerTurn', $elm$json$Json$Decode$int),
+							A2(
+								$elm$json$Json$Decode$field,
+								'players',
+								A2(
+									$elm$json$Json$Decode$map,
+									function (players) {
+										return $elm$core$Dict$fromList(
+											A2(
+												$elm$core$List$map,
+												function (p) {
+													return _Utils_Tuple2(p.position, p);
+												},
+												players));
+									},
+									$elm$json$Json$Decode$list(
+										A6(
+											$elm$json$Json$Decode$map5,
+											$author$project$Game$Player,
+											A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
+											A2(
+												$elm$json$Json$Decode$field,
+												'hand',
+												$elm$json$Json$Decode$list($author$project$Card$decoder)),
+											A2(
+												$elm$json$Json$Decode$field,
+												'discard',
+												$elm$json$Json$Decode$list($author$project$Card$decoder)),
+											A2($elm$json$Json$Decode$field, 'position', $elm$json$Json$Decode$int),
+											A2(
+												$elm$json$Json$Decode$field,
+												'currentCard',
+												$elm$json$Json$Decode$nullable($author$project$Card$decoder)))))))));
+			case 'waitingForOpponent':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Game$WaitingForOpponent,
+					A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string));
+			case 'notStarted':
+				return $elm$json$Json$Decode$succeed($author$project$Game$NotStarted);
+			case 'finished':
+				return A2(
+					$elm$json$Json$Decode$map,
+					$author$project$Game$WaitingForOpponent,
+					A2($elm$json$Json$Decode$field, 'winner', $elm$json$Json$Decode$string));
+			default:
+				return $elm$json$Json$Decode$fail('Invalide state' + s);
+		}
+	},
+	A2($elm$json$Json$Decode$field, 'state', $elm$json$Json$Decode$string));
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm_community$maybe_extra$Maybe$Extra$isJust = function (m) {
+	if (m.$ === 'Nothing') {
+		return false;
+	} else {
+		return true;
+	}
+};
+var $author$project$Games$Battle$endGame = function (game) {
+	var isEmpty = function (p) {
+		return $elm$core$List$isEmpty(p.hand) && ($elm$core$List$isEmpty(p.discard) && $elm_community$maybe_extra$Maybe$Extra$isJust(p.currentCard));
+	};
+	return A2(
+		$elm$core$List$any,
+		isEmpty,
+		$elm$core$Dict$values(game.players)) ? $elm$core$List$head(
+		A2(
+			$elm$core$List$filter,
+			function (s) {
+				return !isEmpty(s);
+			},
+			$elm$core$Dict$values(game.players))) : $elm$core$Maybe$Nothing;
+};
+var $author$project$Game$map = F2(
+	function (fn, gameState) {
+		if (gameState.$ === 'Started') {
+			var a = gameState.a;
+			return $author$project$Game$Started(
+				fn(a));
+		} else {
+			return gameState;
+		}
+	});
+var $author$project$Game$endTurn = F2(
+	function (fn, state) {
+		return A2($author$project$Game$map, fn, state);
 	});
 var $elm$core$Maybe$map = F2(
 	function (f, maybe) {
@@ -10864,52 +11284,31 @@ var $author$project$Games$Battle$addCardsToPlayerDiscard = F3(
 				return A2(
 					$elm$core$Maybe$map,
 					function (player) {
-						return A2($author$project$Game$setDiscard, cards, player);
-					},
-					mPlayer);
-			},
-			players);
-	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm_community$list_extra$List$Extra$remove = F2(
-	function (x, xs) {
-		if (!xs.b) {
-			return _List_Nil;
-		} else {
-			var y = xs.a;
-			var ys = xs.b;
-			return _Utils_eq(x, y) ? ys : A2(
-				$elm$core$List$cons,
-				y,
-				A2($elm_community$list_extra$List$Extra$remove, x, ys));
-		}
-	});
-var $author$project$Games$Battle$removeFromPlayerDiscard = F3(
-	function (id, card, players) {
-		return A3(
-			$elm$core$Dict$update,
-			id,
-			function (mPlayer) {
-				return A2(
-					$elm$core$Maybe$map,
-					function (player) {
 						return A2(
 							$author$project$Game$setDiscard,
-							A2($elm_community$list_extra$List$Extra$remove, card, player.discard),
+							_Utils_ap(cards, player.discard),
 							player);
 					},
 					mPlayer);
 			},
 			players);
 	});
+var $elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			$elm$core$List$any,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
+			list);
+	});
+var $author$project$Games$Battle$next = function (game) {
+	return _Utils_eq(
+		game.playerTurn,
+		$elm$core$Dict$size(game.players) - 1) ? _Utils_update(
+		game,
+		{playerTurn: 0}) : _Utils_update(
+		game,
+		{playerTurn: game.playerTurn + 1});
+};
 var $elm$core$List$sortBy = _List_sortBy;
 var $elm$core$List$takeReverse = F3(
 	function (n, list, kept) {
@@ -11069,7 +11468,7 @@ var $author$project$Card$value = function (card) {
 		case 'HeightClubs':
 			var a = card.a;
 			return a;
-		case 'NiveClubs':
+		case 'NineClubs':
 			var a = card.a;
 			return a;
 		case 'TenClubs':
@@ -11108,7 +11507,7 @@ var $author$project$Card$value = function (card) {
 		case 'HeightDiamond':
 			var a = card.a;
 			return a;
-		case 'NiveDiamond':
+		case 'NineDiamond':
 			var a = card.a;
 			return a;
 		case 'TenDiamond':
@@ -11147,7 +11546,7 @@ var $author$project$Card$value = function (card) {
 		case 'HeightHearts':
 			var a = card.a;
 			return a;
-		case 'NiveHearts':
+		case 'NineHearts':
 			var a = card.a;
 			return a;
 		case 'TenHearts':
@@ -11186,7 +11585,7 @@ var $author$project$Card$value = function (card) {
 		case 'HeightSpades':
 			var a = card.a;
 			return a;
-		case 'NiveSpades':
+		case 'NineSpades':
 			var a = card.a;
 			return a;
 		case 'TenSpades':
@@ -11214,69 +11613,69 @@ var $elm_community$maybe_extra$Maybe$Extra$cons = F2(
 	});
 var $elm_community$maybe_extra$Maybe$Extra$values = A2($elm$core$List$foldr, $elm_community$maybe_extra$Maybe$Extra$cons, _List_Nil);
 var $author$project$Games$Battle$endTurn = function (game) {
-	if (_Utils_eq(
-		$elm$core$Dict$size(game.players) - 1,
-		game.playerTurn)) {
-		var positionCards = $elm_community$maybe_extra$Maybe$Extra$values(
-			A2(
-				$elm$core$List$map,
-				function (s) {
-					return A2(
-						$elm$core$Maybe$map,
-						function (a) {
-							return {lastCard: a, position: s.position};
-						},
-						$elm$core$List$head(s.discard));
-				},
-				$elm$core$Dict$values(game.players)));
-		var sorted = $elm$core$List$reverse(
-			A2(
-				$elm$core$List$sortBy,
-				function (s) {
-					return $author$project$Card$value(s.lastCard);
-				},
-				positionCards));
-		var cards = A2(
+	if (A2(
+		$elm$core$List$all,
+		$elm_community$maybe_extra$Maybe$Extra$isJust,
+		A2(
 			$elm$core$List$map,
 			function ($) {
-				return $.lastCard;
+				return $.currentCard;
 			},
-			positionCards);
-		var _v0 = A2($elm_community$list_extra$List$Extra$splitAt, 1, sorted);
+			$elm$core$Dict$values(game.players)))) {
+		var _v0 = A2(
+			$elm_community$list_extra$List$Extra$splitAt,
+			1,
+			$elm$core$List$reverse(
+				A2(
+					$elm$core$List$sortBy,
+					function (s) {
+						return $author$project$Card$value(s.lastCard);
+					},
+					$elm_community$maybe_extra$Maybe$Extra$values(
+						A2(
+							$elm$core$List$map,
+							function (s) {
+								return A2(
+									$elm$core$Maybe$map,
+									function (a) {
+										return {lastCard: a, position: s.position};
+									},
+									s.currentCard);
+							},
+							$elm$core$Dict$values(game.players))))));
 		var roundWinner = _v0.a;
 		var others = _v0.b;
-		var players = $elm$core$Dict$fromList(
-			A2(
-				$elm$core$List$map,
-				function (_v3) {
-					var k = _v3.a;
-					var v = _v3.b;
-					return _Utils_Tuple2(
-						k,
-						_Utils_update(
-							v,
-							{currentCard: $elm$core$Maybe$Nothing}));
-				},
-				$elm$core$Dict$toList(
-					A3(
-						$elm$core$List$foldl,
-						function (_v2) {
-							var position = _v2.position;
-							var lastCard = _v2.lastCard;
-							return function (dict) {
-								return A3($author$project$Games$Battle$removeFromPlayerDiscard, position, lastCard, dict);
-							};
-						},
-						game.players,
-						others))));
 		var _v1 = $elm$core$List$head(roundWinner);
 		if (_v1.$ === 'Just') {
 			var position = _v1.a.position;
-			return _Utils_update(
-				game,
-				{
-					players: A3($author$project$Games$Battle$addCardsToPlayerDiscard, position, cards, players)
-				});
+			var lastCard = _v1.a.lastCard;
+			return $author$project$Games$Battle$next(
+				_Utils_update(
+					game,
+					{
+						players: A2(
+							$elm$core$Dict$map,
+							function (_v2) {
+								return function (player) {
+									return _Utils_update(
+										player,
+										{currentCard: $elm$core$Maybe$Nothing});
+								};
+							},
+							A3(
+								$author$project$Games$Battle$addCardsToPlayerDiscard,
+								position,
+								A2(
+									$elm$core$List$cons,
+									lastCard,
+									A2(
+										$elm$core$List$map,
+										function ($) {
+											return $.lastCard;
+										},
+										others)),
+								game.players))
+					}));
 		} else {
 			return game;
 		}
@@ -11390,53 +11789,61 @@ var $elm$random$Random$generate = F2(
 			$elm$random$Random$Generate(
 				A2($elm$random$Random$map, tagger, generator)));
 	});
+var $author$project$Game$init = F4(
+	function (discardMode, cards, name, state) {
+		if (state.$ === 'WaitingForOpponent') {
+			var opponentName = state.a;
+			return $author$project$Game$Started(
+				{
+					cards: cards,
+					discard: _List_Nil,
+					playerTurn: 0,
+					players: $elm$core$Dict$fromList(
+						A2(
+							$elm$core$List$indexedMap,
+							function (i) {
+								return function (n) {
+									return _Utils_Tuple2(
+										i,
+										{currentCard: $elm$core$Maybe$Nothing, discard: _List_Nil, hand: _List_Nil, name: n, position: i});
+								};
+							},
+							_List_fromArray(
+								[opponentName, name])))
+				});
+		} else {
+			return state;
+		}
+	});
+var $elm$core$Debug$log = _Debug_log;
 var $author$project$Game$Finished = function (a) {
 	return {$: 'Finished', a: a};
 };
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
 		}
 	});
-var $author$project$Game$endGame = function (gameState) {
-	if (gameState.$ === 'Started') {
-		var game = gameState.a;
-		return A2(
-			$elm$core$List$any,
-			function (s) {
-				return !$elm$core$List$length(s.hand);
-			},
-			$elm$core$Dict$values(game.players)) ? $author$project$Game$Finished('Mike') : gameState;
+var $elm_community$maybe_extra$Maybe$Extra$isNothing = function (m) {
+	if (m.$ === 'Nothing') {
+		return true;
 	} else {
-		return gameState;
+		return false;
 	}
 };
-var $author$project$Game$next = function (game) {
-	return _Utils_eq(
-		game.playerTurn,
-		$elm$core$Dict$size(game.players) - 1) ? _Utils_update(
-		game,
-		{playerTurn: 0}) : _Utils_update(
-		game,
-		{playerTurn: game.playerTurn + 1});
-};
-var $author$project$Game$addCardToPlayerDiscard = F3(
+var $author$project$Game$setCurrentCard = F2(
+	function (card, player) {
+		return _Utils_update(
+			player,
+			{
+				currentCard: $elm$core$Maybe$Just(card)
+			});
+	});
+var $author$project$Game$addCurrentCard = F3(
 	function (id, card, players) {
 		return A3(
 			$elm$core$Dict$update,
@@ -11445,14 +11852,24 @@ var $author$project$Game$addCardToPlayerDiscard = F3(
 				return A2(
 					$elm$core$Maybe$map,
 					function (player) {
-						return A2(
-							$author$project$Game$setDiscard,
-							A2($elm$core$List$cons, card, player.discard),
-							player);
+						return A2($author$project$Game$setCurrentCard, card, player);
 					},
 					mPlayer);
 			},
 			players);
+	});
+var $elm_community$list_extra$List$Extra$remove = F2(
+	function (x, xs) {
+		if (!xs.b) {
+			return _List_Nil;
+		} else {
+			var y = xs.a;
+			var ys = xs.b;
+			return _Utils_eq(x, y) ? ys : A2(
+				$elm$core$List$cons,
+				y,
+				A2($elm_community$list_extra$List$Extra$remove, x, ys));
+		}
 	});
 var $author$project$Game$setHand = F2(
 	function (cards, player) {
@@ -11478,31 +11895,41 @@ var $author$project$Game$removeCardFromPlayerHand = F3(
 			},
 			players);
 	});
-var $author$project$Game$playCard = F2(
-	function (card, game) {
+var $author$project$Game$playCard = F3(
+	function (playBy, card, game) {
 		return _Utils_update(
 			game,
 			{
 				players: A3(
 					$author$project$Game$removeCardFromPlayerHand,
-					game.playerTurn,
+					playBy,
 					card,
-					A3($author$project$Game$addCardToPlayerDiscard, game.playerTurn, card, game.players))
+					A3($author$project$Game$addCurrentCard, playBy, card, game.players))
 			});
 	});
 var $author$project$Game$play = F4(
-	function (endTurn, playerIndex, card, gameState) {
+	function (endGame, playerIndex, card, gameState) {
 		if (gameState.$ === 'Started') {
 			var game = gameState.a;
-			return _Utils_eq(game.playerTurn, playerIndex) ? $author$project$Game$endGame(
-				$author$project$Game$Started(
-					$author$project$Game$next(
-						endTurn(
-							A2($author$project$Game$playCard, card, game))))) : gameState;
+			var _v1 = endGame(game);
+			if (_v1.$ === 'Just') {
+				var p = _v1.a;
+				return $author$project$Game$Finished(p.name);
+			} else {
+				return $elm_community$maybe_extra$Maybe$Extra$isNothing(
+					A2(
+						$elm$core$Maybe$andThen,
+						function ($) {
+							return $.currentCard;
+						},
+						A2($elm$core$Dict$get, playerIndex, game.players))) ? $author$project$Game$Started(
+					A3($author$project$Game$playCard, playerIndex, card, game)) : gameState;
+			}
 		} else {
 			return gameState;
 		}
 	});
+var $author$project$Main$sendData = _Platform_outgoingPort('sendData', $elm$core$Basics$identity);
 var $elm$core$Bitwise$xor = _Bitwise_xor;
 var $elm$random$Random$peel = function (_v0) {
 	var state = _v0.a;
@@ -11683,6 +12110,15 @@ var $elm_community$random_extra$Random$List$shuffle = function (list) {
 			length,
 			A2($elm$random$Random$int, 0, length - 1)));
 };
+var $author$project$Game$next = function (game) {
+	return _Utils_eq(
+		game.playerTurn,
+		$elm$core$Dict$size(game.players) - 1) ? _Utils_update(
+		game,
+		{playerTurn: 0}) : _Utils_update(
+		game,
+		{playerTurn: game.playerTurn + 1});
+};
 var $author$project$Game$playerCards = F3(
 	function (id, cards, players) {
 		return A3(
@@ -11720,16 +12156,6 @@ var $author$project$Game$distribute = F2(
 						players: A3($author$project$Game$playerCards, game.playerTurn, pCards, game.players)
 					})));
 	});
-var $author$project$Game$map = F2(
-	function (fn, gameState) {
-		if (gameState.$ === 'Started') {
-			var a = gameState.a;
-			return $author$project$Game$Started(
-				fn(a));
-		} else {
-			return gameState;
-		}
-	});
 var $author$project$Game$start = F2(
 	function (x, gameState) {
 		return A2(
@@ -11737,43 +12163,7 @@ var $author$project$Game$start = F2(
 			$author$project$Game$distribute(x),
 			gameState);
 	});
-var $author$project$Main$update = F2(
-	function (msg, model) {
-		switch (msg.$) {
-			case 'Init':
-				return _Utils_Tuple2(
-					model,
-					A2(
-						$elm$random$Random$generate,
-						$author$project$Main$Start,
-						$elm_community$random_extra$Random$List$shuffle($author$project$Games$Battle$battleCard)));
-			case 'Start':
-				var cards = msg.a;
-				return _Utils_Tuple2(
-					A2(
-						$author$project$Game$start,
-						26,
-						A3(
-							$author$project$Game$create,
-							$author$project$Game$EachPlayer,
-							cards,
-							_List_fromArray(
-								['Mike', 'Marye']))),
-					$elm$core$Platform$Cmd$none);
-			default:
-				var index = msg.a;
-				var card = msg.b;
-				return _Utils_Tuple2(
-					A4($author$project$Game$play, $author$project$Games$Battle$endTurn, index, card, model),
-					$elm$core$Platform$Cmd$none);
-		}
-	});
-var $author$project$Main$Init = {$: 'Init'};
-var $author$project$Main$Play = F2(
-	function (a, b) {
-		return {$: 'Play', a: a, b: b};
-	});
-var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
+var $elm$json$Json$Encode$int = _Json_wrap;
 var $author$project$Card$toString = function (n) {
 	switch (n.$) {
 		case 'OneClubs':
@@ -11792,8 +12182,8 @@ var $author$project$Card$toString = function (n) {
 			return 'Seven Clubs';
 		case 'HeightClubs':
 			return 'Height Clubs';
-		case 'NiveClubs':
-			return 'Nive Clubs';
+		case 'NineClubs':
+			return 'Nine Clubs';
 		case 'TenClubs':
 			return 'Ten Clubs';
 		case 'ValetClubs':
@@ -11818,8 +12208,8 @@ var $author$project$Card$toString = function (n) {
 			return 'Seven Diamond';
 		case 'HeightDiamond':
 			return 'Height Diamond';
-		case 'NiveDiamond':
-			return 'Nive Diamond';
+		case 'NineDiamond':
+			return 'Nine Diamond';
 		case 'TenDiamond':
 			return 'Ten Diamond';
 		case 'ValetDiamond':
@@ -11844,8 +12234,8 @@ var $author$project$Card$toString = function (n) {
 			return 'Seven Hearts';
 		case 'HeightHearts':
 			return 'Height Hearts';
-		case 'NiveHearts':
-			return 'Nive Hearts';
+		case 'NineHearts':
+			return 'Nine Hearts';
 		case 'TenHearts':
 			return 'Ten Hearts';
 		case 'ValetHearts':
@@ -11870,8 +12260,8 @@ var $author$project$Card$toString = function (n) {
 			return 'Seven Spades';
 		case 'HeightSpades':
 			return 'Height Spades';
-		case 'NiveSpades':
-			return 'Nive Spades';
+		case 'NineSpades':
+			return 'Nine Spades';
 		case 'TenSpades':
 			return 'Ten Spades';
 		case 'ValetSpades':
@@ -11882,24 +12272,946 @@ var $author$project$Card$toString = function (n) {
 			return 'Roi Spades';
 	}
 };
+var $author$project$Card$encode = function (card) {
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'card',
+				$elm$json$Json$Encode$string(
+					$author$project$Card$toString(card))),
+				_Utils_Tuple2(
+				'value',
+				$elm$json$Json$Encode$int(
+					$author$project$Card$value(card)))
+			]));
+};
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $author$project$Game$toJson = function (state) {
+	switch (state.$) {
+		case 'Finished':
+			var name = state.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'state',
+						$elm$json$Json$Encode$string('finished')),
+						_Utils_Tuple2(
+						'winner',
+						$elm$json$Json$Encode$string(name))
+					]));
+		case 'Started':
+			var game = state.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'state',
+						$elm$json$Json$Encode$string('started')),
+						_Utils_Tuple2(
+						'game',
+						$elm$json$Json$Encode$object(
+							_List_fromArray(
+								[
+									_Utils_Tuple2(
+									'discard',
+									A2($elm$json$Json$Encode$list, $author$project$Card$encode, game.discard)),
+									_Utils_Tuple2(
+									'cards',
+									A2($elm$json$Json$Encode$list, $author$project$Card$encode, game.cards)),
+									_Utils_Tuple2(
+									'playerTurn',
+									$elm$json$Json$Encode$int(game.playerTurn)),
+									_Utils_Tuple2(
+									'players',
+									A2(
+										$elm$json$Json$Encode$list,
+										function (player) {
+											return $elm$json$Json$Encode$object(
+												_List_fromArray(
+													[
+														_Utils_Tuple2(
+														'name',
+														$elm$json$Json$Encode$string(player.name)),
+														_Utils_Tuple2(
+														'hand',
+														A2($elm$json$Json$Encode$list, $author$project$Card$encode, player.hand)),
+														_Utils_Tuple2(
+														'discard',
+														A2($elm$json$Json$Encode$list, $author$project$Card$encode, player.discard)),
+														_Utils_Tuple2(
+														'position',
+														$elm$json$Json$Encode$int(player.position)),
+														_Utils_Tuple2(
+														'currentCard',
+														A2(
+															$elm$core$Maybe$withDefault,
+															$elm$json$Json$Encode$null,
+															A2($elm$core$Maybe$map, $author$project$Card$encode, player.currentCard)))
+													]));
+										},
+										$elm$core$Dict$values(game.players)))
+								])))
+					]));
+		case 'WaitingForOpponent':
+			var name = state.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'state',
+						$elm$json$Json$Encode$string('waitingForOpponent')),
+						_Utils_Tuple2(
+						'name',
+						$elm$json$Json$Encode$string(name))
+					]));
+		default:
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'state',
+						$elm$json$Json$Encode$string('notStarted'))
+					]));
+	}
+};
+var $author$project$Main$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'SetName':
+				var name = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{playerName: name}),
+					$elm$core$Platform$Cmd$none);
+			case 'Create':
+				var m = $author$project$Game$create(model.playerName);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{gameState: m, playerIndex: 0}),
+					$author$project$Main$sendData(
+						$author$project$Game$toJson(m)));
+			case 'Init':
+				return _Utils_Tuple2(
+					model,
+					A2(
+						$elm$random$Random$generate,
+						$author$project$Main$Start,
+						$elm_community$random_extra$Random$List$shuffle($author$project$Games$Battle$battleCard)));
+			case 'Start':
+				var cards = msg.a;
+				var m = A2(
+					$author$project$Game$start,
+					26,
+					A4($author$project$Game$init, $author$project$Game$EachPlayer, cards, model.playerName, model.gameState));
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{gameState: m, playerIndex: 1}),
+					$author$project$Main$sendData(
+						$author$project$Game$toJson(m)));
+			case 'Play':
+				var index = msg.a;
+				var card = msg.b;
+				if (card.$ === 'Just') {
+					var c = card.a;
+					var m = A4($author$project$Game$play, $author$project$Games$Battle$endGame, index, c, model.gameState);
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{gameState: m}),
+						$author$project$Main$sendData(
+							$author$project$Game$toJson(m)));
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+			case 'EndTurn':
+				var m = A2($author$project$Game$endTurn, $author$project$Games$Battle$endTurn, model.gameState);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{gameState: m}),
+					$author$project$Main$sendData(
+						$author$project$Game$toJson(m)));
+			default:
+				var encoded = msg.a;
+				var gameState = A2($elm$json$Json$Decode$decodeValue, $author$project$Game$decoder, encoded);
+				if (gameState.$ === 'Ok') {
+					var v = gameState.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{gameState: v}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var err = gameState.a;
+					var _v3 = A2($elm$core$Debug$log, 'error from decode', err);
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+		}
+	});
+var $author$project$Main$Create = {$: 'Create'};
+var $author$project$Main$EndTurn = {$: 'EndTurn'};
+var $author$project$Main$Init = {$: 'Init'};
+var $author$project$Main$Play = F2(
+	function (a, b) {
+		return {$: 'Play', a: a, b: b};
+	});
+var $author$project$Main$SetName = function (a) {
+	return {$: 'SetName', a: a};
+};
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
+var $elm$html$Html$fieldset = _VirtualDom_node('fieldset');
+var $elm$html$Html$label = _VirtualDom_node('label');
+var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
+var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $author$project$Card$svg = function (card) {
+	switch (card.$) {
+		case 'OneClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/AC.svg')
+					]),
+				_List_Nil);
+		case 'TwoClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/2C.svg')
+					]),
+				_List_Nil);
+		case 'ThreeClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/3C.svg')
+					]),
+				_List_Nil);
+		case 'FourClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/4C.svg')
+					]),
+				_List_Nil);
+		case 'FiveClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/5C.svg')
+					]),
+				_List_Nil);
+		case 'SixClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/6C.svg')
+					]),
+				_List_Nil);
+		case 'SevenClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/7C.svg')
+					]),
+				_List_Nil);
+		case 'HeightClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/8C.svg')
+					]),
+				_List_Nil);
+		case 'NineClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/9C.svg')
+					]),
+				_List_Nil);
+		case 'TenClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/TC.svg')
+					]),
+				_List_Nil);
+		case 'ValetClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/JC.svg')
+					]),
+				_List_Nil);
+		case 'ReineClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/QC.svg')
+					]),
+				_List_Nil);
+		case 'RoiClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/KC.svg')
+					]),
+				_List_Nil);
+		case 'OneDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/AD.svg')
+					]),
+				_List_Nil);
+		case 'TwoDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/2D.svg')
+					]),
+				_List_Nil);
+		case 'ThreeDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/3D.svg')
+					]),
+				_List_Nil);
+		case 'FourDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/4D.svg')
+					]),
+				_List_Nil);
+		case 'FiveDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/5D.svg')
+					]),
+				_List_Nil);
+		case 'SixDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/6D.svg')
+					]),
+				_List_Nil);
+		case 'SevenDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/7D.svg')
+					]),
+				_List_Nil);
+		case 'HeightDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/8D.svg')
+					]),
+				_List_Nil);
+		case 'NineDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/9D.svg')
+					]),
+				_List_Nil);
+		case 'TenDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/TD.svg')
+					]),
+				_List_Nil);
+		case 'ValetDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/JD.svg')
+					]),
+				_List_Nil);
+		case 'ReineDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/QD.svg')
+					]),
+				_List_Nil);
+		case 'RoiDiamond':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/KD.svg')
+					]),
+				_List_Nil);
+		case 'OneHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/AH.svg')
+					]),
+				_List_Nil);
+		case 'TwoHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/2H.svg')
+					]),
+				_List_Nil);
+		case 'ThreeHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/3H.svg')
+					]),
+				_List_Nil);
+		case 'FourHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/4H.svg')
+					]),
+				_List_Nil);
+		case 'FiveHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/5H.svg')
+					]),
+				_List_Nil);
+		case 'SixHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/6H.svg')
+					]),
+				_List_Nil);
+		case 'SevenHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/7H.svg')
+					]),
+				_List_Nil);
+		case 'HeightHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/8H.svg')
+					]),
+				_List_Nil);
+		case 'NineHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/9H.svg')
+					]),
+				_List_Nil);
+		case 'TenHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/TH.svg')
+					]),
+				_List_Nil);
+		case 'ValetHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/JH.svg')
+					]),
+				_List_Nil);
+		case 'ReineHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/QH.svg')
+					]),
+				_List_Nil);
+		case 'RoiHearts':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/KH.svg')
+					]),
+				_List_Nil);
+		case 'OneSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/AS.svg')
+					]),
+				_List_Nil);
+		case 'TwoSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/2S.svg')
+					]),
+				_List_Nil);
+		case 'ThreeSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/3S.svg')
+					]),
+				_List_Nil);
+		case 'FourSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/4S.svg')
+					]),
+				_List_Nil);
+		case 'FiveSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/5S.svg')
+					]),
+				_List_Nil);
+		case 'SixSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/6S.svg')
+					]),
+				_List_Nil);
+		case 'SevenSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/7S.svg')
+					]),
+				_List_Nil);
+		case 'HeightSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/8S.svg')
+					]),
+				_List_Nil);
+		case 'NineSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/9S.svg')
+					]),
+				_List_Nil);
+		case 'TenSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/TS.svg')
+					]),
+				_List_Nil);
+		case 'ValetSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/JS.svg')
+					]),
+				_List_Nil);
+		case 'ReineSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/QS.svg')
+					]),
+				_List_Nil);
+		default:
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/KS.svg')
+					]),
+				_List_Nil);
+	}
+};
+var $author$project$Card$top = function (card) {
+	switch (card.$) {
+		case 'OneClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'TwoClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'ThreeClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'FourClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'FiveClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'SixClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'SevenClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'HeightClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'NineClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'TenClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'ValetClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'ReineClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'RoiClubs':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'OneSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'TwoSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'ThreeSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'FourSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'FiveSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'SixSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'SevenSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'HeightSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'NineSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'TenSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'ValetSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'ReineSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		case 'RoiSpades':
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/1B.svg')
+					]),
+				_List_Nil);
+		default:
+			return A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./assets/2B.svg')
+					]),
+				_List_Nil);
+	}
+};
 var $author$project$Main$view = function (model) {
-	switch (model.$) {
+	var _v0 = model.gameState;
+	switch (_v0.$) {
 		case 'NotStarted':
 			return A2(
-				$elm$html$Html$button,
+				$elm$html$Html$div,
+				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$Events$onClick($author$project$Main$Init)
-					]),
+						A2(
+						$elm$html$Html$label,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Your name ')
+							])),
+						A2(
+						$elm$html$Html$input,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$placeholder('name'),
+								$elm$html$Html$Events$onInput($author$project$Main$SetName)
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$Create)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Start now')
+							]))
+					]));
+		case 'WaitingForOpponent':
+			var name = _v0.a;
+			return _Utils_eq(name, model.playerName) ? A2(
+				$elm$html$Html$div,
+				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Start')
+						$elm$html$Html$text(' wait for opponent')
+					])) : A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(name + ' wait for opponent '),
+						A2(
+						$elm$html$Html$input,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$placeholder('name'),
+								$elm$html$Html$Events$onInput($author$project$Main$SetName)
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$Init)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Start now')
+							]))
 					]));
 		case 'Finished':
-			var winner = model.a;
-			return $elm$html$Html$text('Winner is ' + winner);
+			var winner = _v0.a;
+			return A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Winner is ' + winner),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Main$Init)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('replay')
+							]))
+					]));
 		default:
-			var game = model.a;
+			var game = _v0.a;
 			return A2(
 				$elm$html$Html$div,
 				_List_Nil,
@@ -11932,91 +13244,158 @@ var $author$project$Main$view = function (model) {
 									_List_Nil,
 									_List_fromArray(
 										[
-											A2(
-											$elm$html$Html$ul,
-											_List_Nil,
-											A2(
-												$elm$core$List$cons,
-												function () {
-													var _v3 = game.discardMode;
-													if (_v3.$ === 'EachPlayer') {
-														return A2(
-															$elm$html$Html$li,
-															_List_Nil,
+											(!index) ? A2(
+											$elm$html$Html$fieldset,
+											_List_fromArray(
+												[
+													$elm$html$Html$Attributes$disabled(
+													!_Utils_eq(model.playerIndex, index))
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													_List_Nil,
+													_List_fromArray(
+														[
+															$elm$html$Html$text(player.name)
+														])),
+													A2(
+													$elm$html$Html$div,
+													_List_fromArray(
+														[
+															$elm$html$Html$Attributes$class('board')
+														]),
+													_List_fromArray(
+														[
+															function () {
+															var topCard = $elm$core$List$head(player.discard);
+															return A2(
+																$elm$html$Html$li,
+																_List_Nil,
+																_List_fromArray(
+																	[
+																		A2(
+																		$elm$core$Maybe$withDefault,
+																		$elm$html$Html$text(''),
+																		A2($elm$core$Maybe$map, $author$project$Card$svg, topCard)),
+																		$elm$html$Html$text(
+																		$elm$core$String$fromInt(
+																			$elm$core$List$length(player.hand)))
+																	]));
+														}(),
+															function () {
+															var topCard = $elm$core$List$head(player.hand);
+															return A2(
+																$elm$html$Html$button,
+																_List_fromArray(
+																	[
+																		$elm$html$Html$Events$onClick(
+																		A2($author$project$Main$Play, index, topCard))
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		$elm$core$Maybe$withDefault,
+																		$elm$html$Html$text(''),
+																		A2($elm$core$Maybe$map, $author$project$Card$top, topCard)),
+																		$elm$html$Html$text(
+																		$elm$core$String$fromInt(
+																			$elm$core$List$length(player.hand)))
+																	]));
+														}(),
+															A2(
+															$elm$html$Html$div,
 															_List_fromArray(
 																[
-																	$elm$html$Html$text(
-																	$elm$core$String$fromInt(
-																		$elm$core$List$length(player.discard)))
-																]));
-													} else {
-														return A2($elm$html$Html$li, _List_Nil, _List_Nil);
-													}
-												}(),
-												A2(
-													$elm$core$List$cons,
-													function () {
-														var _v2 = game.discardMode;
-														if (_v2.$ === 'EachPlayer') {
-															return A2(
-																$elm$html$Html$li,
-																_List_Nil,
-																_List_fromArray(
-																	[
-																		$elm$html$Html$text(
-																		A2(
-																			$elm$core$Maybe$withDefault,
-																			'',
-																			A2(
-																				$elm$core$Maybe$map,
-																				$author$project$Card$toString,
-																				$elm$core$List$head(player.discard))))
-																	]));
-														} else {
-															return A2($elm$html$Html$li, _List_Nil, _List_Nil);
-														}
-													}(),
+																	$elm$html$Html$Events$onClick($author$project$Main$EndTurn)
+																]),
+															_List_fromArray(
+																[
+																	A2(
+																	$elm$core$Maybe$withDefault,
+																	$elm$html$Html$text(''),
+																	A2($elm$core$Maybe$map, $author$project$Card$svg, player.currentCard))
+																]))
+														]))
+												])) : A2(
+											$elm$html$Html$fieldset,
+											_List_fromArray(
+												[
+													$elm$html$Html$Attributes$disabled(
+													!_Utils_eq(model.playerIndex, index))
+												]),
+											_List_fromArray(
+												[
 													A2(
-														$elm$core$List$map,
-														function (s) {
+													$elm$html$Html$div,
+													_List_Nil,
+													_List_fromArray(
+														[
+															$elm$html$Html$text(player.name)
+														])),
+													A2(
+													$elm$html$Html$div,
+													_List_fromArray(
+														[
+															$elm$html$Html$Attributes$class('board')
+														]),
+													_List_fromArray(
+														[
+															A2(
+															$elm$html$Html$div,
+															_List_fromArray(
+																[
+																	$elm$html$Html$Events$onClick($author$project$Main$EndTurn)
+																]),
+															_List_fromArray(
+																[
+																	A2(
+																	$elm$core$Maybe$withDefault,
+																	$elm$html$Html$text(''),
+																	A2($elm$core$Maybe$map, $author$project$Card$svg, player.currentCard))
+																])),
+															function () {
+															var topCard = $elm$core$List$head(player.hand);
+															return A2(
+																$elm$html$Html$button,
+																_List_fromArray(
+																	[
+																		$elm$html$Html$Events$onClick(
+																		A2($author$project$Main$Play, index, topCard))
+																	]),
+																_List_fromArray(
+																	[
+																		A2(
+																		$elm$core$Maybe$withDefault,
+																		$elm$html$Html$text(''),
+																		A2($elm$core$Maybe$map, $author$project$Card$top, topCard)),
+																		$elm$html$Html$text(
+																		$elm$core$String$fromInt(
+																			$elm$core$List$length(player.hand)))
+																	]));
+														}(),
+															function () {
+															var topCard = $elm$core$List$head(player.discard);
 															return A2(
 																$elm$html$Html$li,
 																_List_Nil,
 																_List_fromArray(
 																	[
 																		A2(
-																		$elm$html$Html$button,
-																		_List_fromArray(
-																			[
-																				$elm$html$Html$Events$onClick(
-																				A2($author$project$Main$Play, index, s))
-																			]),
-																		_List_fromArray(
-																			[
-																				$elm$html$Html$text(
-																				$author$project$Card$toString(s))
-																			]))
+																		$elm$core$Maybe$withDefault,
+																		$elm$html$Html$text(''),
+																		A2($elm$core$Maybe$map, $author$project$Card$svg, topCard)),
+																		$elm$html$Html$text(
+																		$elm$core$String$fromInt(
+																			$elm$core$List$length(player.hand)))
 																	]));
-														},
-														player.hand))))
+														}()
+														]))
+												]))
 										]));
 							},
-							$elm$core$Dict$toList(game.players))),
-						function () {
-						var _v4 = game.discardMode;
-						if (_v4.$ === 'One') {
-							return $elm$html$Html$text(
-								A2(
-									$elm$core$Maybe$withDefault,
-									'',
-									A2(
-										$elm$core$Maybe$map,
-										$author$project$Card$toString,
-										$elm$core$List$head(game.discard))));
-						} else {
-							return $elm$html$Html$text('');
-						}
-					}()
+							$elm$core$Dict$toList(game.players)))
 					]));
 	}
 };
@@ -12025,29 +13404,549 @@ var $author$project$Main$main = $elm$browser$Browser$element(
 		init: function (_v0) {
 			return _Utils_Tuple2($author$project$Main$initialModel, $elm$core$Platform$Cmd$none);
 		},
-		subscriptions: function (_v1) {
-			return $elm$core$Platform$Sub$none;
-		},
+		subscriptions: $author$project$Main$subscriptions,
 		update: $author$project$Main$update,
 		view: $author$project$Main$view
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"Start":["List.List Card.Card"],"Play":["Basics.Int","Card.Card"],"Init":[]}},"Card.Card":{"args":[],"tags":{"OneClubs":["Basics.Int"],"TwoClubs":["Basics.Int"],"ThreeClubs":["Basics.Int"],"FourClubs":["Basics.Int"],"FiveClubs":["Basics.Int"],"SixClubs":["Basics.Int"],"SevenClubs":["Basics.Int"],"HeightClubs":["Basics.Int"],"NiveClubs":["Basics.Int"],"TenClubs":["Basics.Int"],"ValetClubs":["Basics.Int"],"ReineClubs":["Basics.Int"],"RoiClubs":["Basics.Int"],"OneDiamond":["Basics.Int"],"TwoDiamond":["Basics.Int"],"ThreeDiamond":["Basics.Int"],"FourDiamond":["Basics.Int"],"FiveDiamond":["Basics.Int"],"SixDiamond":["Basics.Int"],"SevenDiamond":["Basics.Int"],"HeightDiamond":["Basics.Int"],"NiveDiamond":["Basics.Int"],"TenDiamond":["Basics.Int"],"ValetDiamond":["Basics.Int"],"ReineDiamond":["Basics.Int"],"RoiDiamond":["Basics.Int"],"OneHearts":["Basics.Int"],"TwoHearts":["Basics.Int"],"ThreeHearts":["Basics.Int"],"FourHearts":["Basics.Int"],"FiveHearts":["Basics.Int"],"SixHearts":["Basics.Int"],"SevenHearts":["Basics.Int"],"HeightHearts":["Basics.Int"],"NiveHearts":["Basics.Int"],"TenHearts":["Basics.Int"],"ValetHearts":["Basics.Int"],"ReineHearts":["Basics.Int"],"RoiHearts":["Basics.Int"],"OneSpades":["Basics.Int"],"TwoSpades":["Basics.Int"],"ThreeSpades":["Basics.Int"],"FourSpades":["Basics.Int"],"FiveSpades":["Basics.Int"],"SixSpades":["Basics.Int"],"SevenSpades":["Basics.Int"],"HeightSpades":["Basics.Int"],"NiveSpades":["Basics.Int"],"TenSpades":["Basics.Int"],"ValetSpades":["Basics.Int"],"ReineSpades":["Basics.Int"],"RoiSpades":["Basics.Int"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"Start":["List.List Card.Card"],"Play":["Basics.Int","Maybe.Maybe Card.Card"],"Create":[],"Init":[],"SetName":["String.String"],"UpdateGame":["Json.Encode.Value"],"EndTurn":[]}},"Card.Card":{"args":[],"tags":{"OneClubs":["Basics.Int"],"TwoClubs":["Basics.Int"],"ThreeClubs":["Basics.Int"],"FourClubs":["Basics.Int"],"FiveClubs":["Basics.Int"],"SixClubs":["Basics.Int"],"SevenClubs":["Basics.Int"],"HeightClubs":["Basics.Int"],"NineClubs":["Basics.Int"],"TenClubs":["Basics.Int"],"ValetClubs":["Basics.Int"],"ReineClubs":["Basics.Int"],"RoiClubs":["Basics.Int"],"OneDiamond":["Basics.Int"],"TwoDiamond":["Basics.Int"],"ThreeDiamond":["Basics.Int"],"FourDiamond":["Basics.Int"],"FiveDiamond":["Basics.Int"],"SixDiamond":["Basics.Int"],"SevenDiamond":["Basics.Int"],"HeightDiamond":["Basics.Int"],"NineDiamond":["Basics.Int"],"TenDiamond":["Basics.Int"],"ValetDiamond":["Basics.Int"],"ReineDiamond":["Basics.Int"],"RoiDiamond":["Basics.Int"],"OneHearts":["Basics.Int"],"TwoHearts":["Basics.Int"],"ThreeHearts":["Basics.Int"],"FourHearts":["Basics.Int"],"FiveHearts":["Basics.Int"],"SixHearts":["Basics.Int"],"SevenHearts":["Basics.Int"],"HeightHearts":["Basics.Int"],"NineHearts":["Basics.Int"],"TenHearts":["Basics.Int"],"ValetHearts":["Basics.Int"],"ReineHearts":["Basics.Int"],"RoiHearts":["Basics.Int"],"OneSpades":["Basics.Int"],"TwoSpades":["Basics.Int"],"ThreeSpades":["Basics.Int"],"FourSpades":["Basics.Int"],"FiveSpades":["Basics.Int"],"SixSpades":["Basics.Int"],"SevenSpades":["Basics.Int"],"HeightSpades":["Basics.Int"],"NineSpades":["Basics.Int"],"TenSpades":["Basics.Int"],"ValetSpades":["Basics.Int"],"ReineSpades":["Basics.Int"],"RoiSpades":["Basics.Int"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}}}}})}});
 
-  var app = Elm.Main.init({ node: document.getElementById("elm") });
-}
-catch (e)
-{
-  // display initialization errors (e.g. bad flags, infinite recursion)
-  var header = document.createElement("h1");
-  header.style.fontFamily = "monospace";
-  header.innerText = "Initialization Error";
-  var pre = document.getElementById("elm");
-  document.body.insertBefore(header, pre);
-  pre.innerText = e;
-  throw e;
-}
-</script>
+//////////////////// HMR BEGIN ////////////////////
 
-</body>
-</html>
+/*
+  MIT License http://www.opensource.org/licenses/mit-license.php
+  Original Author: Flux Xu @fluxxu
+*/
+
+/*
+    A note about the environment that this code runs in...
+
+    assumed globals:
+        - `module` (from Node.js module system and webpack)
+
+    assumed in scope after injection into the Elm IIFE:
+        - `scope` (has an 'Elm' property which contains the public Elm API)
+        - various functions defined by Elm which we have to hook such as `_Platform_initialize` and `_Scheduler_binding`
+ */
+
+if (module.hot) {
+    (function () {
+        "use strict";
+
+        //polyfill for IE: https://github.com/fluxxu/elm-hot-loader/issues/16
+        if (typeof Object.assign != 'function') {
+            Object.assign = function (target) {
+                'use strict';
+                if (target == null) {
+                    throw new TypeError('Cannot convert undefined or null to object');
+                }
+
+                target = Object(target);
+                for (var index = 1; index < arguments.length; index++) {
+                    var source = arguments[index];
+                    if (source != null) {
+                        for (var key in source) {
+                            if (Object.prototype.hasOwnProperty.call(source, key)) {
+                                target[key] = source[key];
+                            }
+                        }
+                    }
+                }
+                return target;
+            };
+        }
+
+        // Elm 0.19.1 introduced a '$' prefix at the beginning of the symbols it emits,
+        // and we check for `List.map` because we expect it to be present in all Elm programs.
+        var elmVersion;
+        if (typeof elm$core$List$map !== 'undefined')
+            elmVersion = '0.19.0';
+        else if (typeof $elm$core$List$map !== 'undefined')
+            elmVersion = '0.19.1';
+        else
+            throw new Error("Could not determine Elm version");
+
+        function elmSymbol(symbol) {
+            try {
+                switch (elmVersion) {
+                    case '0.19.0':
+                        return eval(symbol);
+                    case '0.19.1':
+                        return eval('$' + symbol);
+                    default:
+                        throw new Error('Cannot resolve ' + symbol + '. Elm version unknown!')
+                }
+            } catch (e) {
+                if (e instanceof ReferenceError) {
+                    return undefined;
+                } else {
+                    throw e;
+                }
+            }
+        }
+
+        var instances = module.hot.data
+            ? module.hot.data.instances || {}
+            : {};
+        var uid = module.hot.data
+            ? module.hot.data.uid || 0
+            : 0;
+
+        if (Object.keys(instances).length === 0) {
+            log("[elm-hot] Enabled");
+        }
+
+        var cancellers = [];
+
+        // These 2 variables act as dynamically-scoped variables which are set only when the
+        // Elm module's hooked init function is called.
+        var initializingInstance = null;
+        var swappingInstance = null;
+
+        module.hot.accept();
+        module.hot.dispose(function (data) {
+            data.instances = instances;
+            data.uid = uid;
+
+            // Cleanup pending async tasks
+
+            // First, make sure that no new tasks can be started until we finish replacing the code
+            _Scheduler_binding = function () {
+                return _Scheduler_fail(new Error('[elm-hot] Inactive Elm instance.'))
+            };
+
+            // Second, kill pending tasks belonging to the old instance
+            if (cancellers.length) {
+                log('[elm-hot] Killing ' + cancellers.length + ' running processes...');
+                try {
+                    cancellers.forEach(function (cancel) {
+                        cancel();
+                    });
+                } catch (e) {
+                    console.warn('[elm-hot] Kill process error: ' + e.message);
+                }
+            }
+        });
+
+        function log(message) {
+            if (module.hot.verbose) {
+                console.log(message)
+            }
+        }
+
+        function getId() {
+            return ++uid;
+        }
+
+        function findPublicModules(parent, path) {
+            var modules = [];
+            for (var key in parent) {
+                var child = parent[key];
+                var currentPath = path ? path + '.' + key : key;
+                if ('init' in child) {
+                    modules.push({
+                        path: currentPath,
+                        module: child
+                    });
+                } else {
+                    modules = modules.concat(findPublicModules(child, currentPath));
+                }
+            }
+            return modules;
+        }
+
+        function registerInstance(domNode, flags, path, portSubscribes, portSends) {
+            var id = getId();
+
+            var instance = {
+                id: id,
+                path: path,
+                domNode: domNode,
+                flags: flags,
+                portSubscribes: portSubscribes,
+                portSends: portSends,
+                navKeyPath: null, // array of JS property names by which the Browser.Navigation.Key can be found in the model
+                lastState: null // last Elm app state (root model)
+            };
+
+            return instances[id] = instance
+        }
+
+        function isFullscreenApp() {
+            // Returns true if the Elm app will take over the entire DOM body.
+            return typeof elmSymbol("elm$browser$Browser$application") !== 'undefined'
+                || typeof elmSymbol("elm$browser$Browser$document") !== 'undefined';
+        }
+
+        function wrapDomNode(node) {
+            // When embedding an Elm app into a specific DOM node, Elm will replace the provided
+            // DOM node with the Elm app's content. When the Elm app is compiled normally, the
+            // original DOM node is reused (its attributes and content changes, but the object
+            // in memory remains the same). But when compiled using `--debug`, Elm will completely
+            // destroy the original DOM node and instead replace it with 2 brand new nodes: one
+            // for your Elm app's content and the other for the Elm debugger UI. In this case,
+            // if you held a reference to the DOM node provided for embedding, it would be orphaned
+            // after Elm module initialization.
+            //
+            // So in order to make both cases consistent and isolate us from changes in how Elm
+            // does this, we will insert a dummy node to wrap the node for embedding and hold
+            // a reference to the dummy node.
+            //
+            // We will also put a tag on the dummy node so that the Elm developer knows who went
+            // behind their back and rudely put stuff in their DOM.
+            var dummyNode = document.createElement("div");
+            dummyNode.setAttribute("data-elm-hot", "true");
+            dummyNode.style.height = "inherit";
+            var parentNode = node.parentNode;
+            parentNode.replaceChild(dummyNode, node);
+            dummyNode.appendChild(node);
+            return dummyNode;
+        }
+
+        function wrapPublicModule(path, module) {
+            var originalInit = module.init;
+            if (originalInit) {
+                module.init = function (args) {
+                    var elm;
+                    var portSubscribes = {};
+                    var portSends = {};
+                    var domNode = null;
+                    var flags = null;
+                    if (typeof args !== 'undefined') {
+                        // normal case
+                        domNode = args['node'] && !isFullscreenApp()
+                            ? wrapDomNode(args['node'])
+                            : document.body;
+                        flags = args['flags'];
+                    } else {
+                        // rare case: Elm allows init to be called without any arguments at all
+                        domNode = document.body;
+                        flags = undefined
+                    }
+                    initializingInstance = registerInstance(domNode, flags, path, portSubscribes, portSends);
+                    elm = originalInit(args);
+                    wrapPorts(elm, portSubscribes, portSends);
+                    initializingInstance = null;
+                    return elm;
+                };
+            } else {
+                console.error("Could not find a public module to wrap at path " + path)
+            }
+        }
+
+        function swap(Elm, instance) {
+            log('[elm-hot] Hot-swapping module: ' + instance.path);
+
+            swappingInstance = instance;
+
+            // remove from the DOM everything that had been created by the old Elm app
+            var containerNode = instance.domNode;
+            while (containerNode.lastChild) {
+                containerNode.removeChild(containerNode.lastChild);
+            }
+
+            var m = getAt(instance.path.split('.'), Elm);
+            var elm;
+            if (m) {
+                // prepare to initialize the new Elm module
+                var args = {flags: instance.flags};
+                if (containerNode === document.body) {
+                    // fullscreen case: no additional args needed
+                } else {
+                    // embed case: provide a new node for Elm to use
+                    var nodeForEmbed = document.createElement("div");
+                    containerNode.appendChild(nodeForEmbed);
+                    args['node'] = nodeForEmbed;
+                }
+
+                elm = m.init(args);
+
+                Object.keys(instance.portSubscribes).forEach(function (portName) {
+                    if (portName in elm.ports && 'subscribe' in elm.ports[portName]) {
+                        var handlers = instance.portSubscribes[portName];
+                        if (!handlers.length) {
+                            return;
+                        }
+                        log('[elm-hot] Reconnect ' + handlers.length + ' handler(s) to port \''
+                            + portName + '\' (' + instance.path + ').');
+                        handlers.forEach(function (handler) {
+                            elm.ports[portName].subscribe(handler);
+                        });
+                    } else {
+                        delete instance.portSubscribes[portName];
+                        log('[elm-hot] Port was removed: ' + portName);
+                    }
+                });
+
+                Object.keys(instance.portSends).forEach(function (portName) {
+                    if (portName in elm.ports && 'send' in elm.ports[portName]) {
+                        log('[elm-hot] Replace old port send with the new send');
+                        instance.portSends[portName] = elm.ports[portName].send;
+                    } else {
+                        delete instance.portSends[portName];
+                        log('[elm-hot] Port was removed: ' + portName);
+                    }
+                });
+            } else {
+                log('[elm-hot] Module was removed: ' + instance.path);
+            }
+
+            swappingInstance = null;
+        }
+
+        function wrapPorts(elm, portSubscribes, portSends) {
+            var portNames = Object.keys(elm.ports || {});
+            //hook ports
+            if (portNames.length) {
+                // hook outgoing ports
+                portNames
+                    .filter(function (name) {
+                        return 'subscribe' in elm.ports[name];
+                    })
+                    .forEach(function (portName) {
+                        var port = elm.ports[portName];
+                        var subscribe = port.subscribe;
+                        var unsubscribe = port.unsubscribe;
+                        elm.ports[portName] = Object.assign(port, {
+                            subscribe: function (handler) {
+                                log('[elm-hot] ports.' + portName + '.subscribe called.');
+                                if (!portSubscribes[portName]) {
+                                    portSubscribes[portName] = [handler];
+                                } else {
+                                    //TODO handle subscribing to single handler more than once?
+                                    portSubscribes[portName].push(handler);
+                                }
+                                return subscribe.call(port, handler);
+                            },
+                            unsubscribe: function (handler) {
+                                log('[elm-hot] ports.' + portName + '.unsubscribe called.');
+                                var list = portSubscribes[portName];
+                                if (list && list.indexOf(handler) !== -1) {
+                                    list.splice(list.lastIndexOf(handler), 1);
+                                } else {
+                                    console.warn('[elm-hot] ports.' + portName + '.unsubscribe: handler not subscribed');
+                                }
+                                return unsubscribe.call(port, handler);
+                            }
+                        });
+                    });
+
+                // hook incoming ports
+                portNames
+                    .filter(function (name) {
+                        return 'send' in elm.ports[name];
+                    })
+                    .forEach(function (portName) {
+                        var port = elm.ports[portName];
+                        portSends[portName] = port.send;
+                        elm.ports[portName] = Object.assign(port, {
+                            send: function (val) {
+                                return portSends[portName].call(port, val);
+                            }
+                        });
+                    });
+            }
+            return portSubscribes;
+        }
+
+        /*
+        Breadth-first search for a `Browser.Navigation.Key` in the user's app model.
+        Returns the key and keypath or null if not found.
+        */
+        function findNavKey(rootModel) {
+            var queue = [];
+            if (isDebuggerModel(rootModel)) {
+                /*
+                 Extract the user's app model from the Elm Debugger's model. The Elm debugger
+                 can hold multiple references to the user's model (e.g. in its "history"). So
+                 we must be careful to only search within the "state" part of the Debugger.
+                */
+                queue.push({value: rootModel['state'], keypath: ['state']});
+            } else {
+                queue.push({value: rootModel, keypath: []});
+            }
+
+            while (queue.length !== 0) {
+                var item = queue.shift();
+
+                // The nav key is identified by a runtime tag added by the elm-hot injector.
+                if (item.value.hasOwnProperty("elm-hot-nav-key")) {
+                    // found it!
+                    return item;
+                }
+
+                if (typeof item.value !== "object") {
+                    continue;
+                }
+
+                for (var propName in item.value) {
+                    if (!item.value.hasOwnProperty(propName)) continue;
+                    var newKeypath = item.keypath.slice();
+                    newKeypath.push(propName);
+                    queue.push({value: item.value[propName], keypath: newKeypath})
+                }
+            }
+
+            return null;
+        }
+
+
+        function isDebuggerModel(model) {
+            return model && model.hasOwnProperty("expando") && model.hasOwnProperty("state");
+        }
+
+        function getAt(keyPath, obj) {
+            return keyPath.reduce(function (xs, x) {
+                return (xs && xs[x]) ? xs[x] : null
+            }, obj)
+        }
+
+        function removeNavKeyListeners(navKey) {
+            window.removeEventListener('popstate', navKey.value);
+            window.navigator.userAgent.indexOf('Trident') < 0 || window.removeEventListener('hashchange', navKey.value);
+        }
+
+        // hook program creation
+        var initialize = _Platform_initialize;
+        _Platform_initialize = function (flagDecoder, args, init, update, subscriptions, stepperBuilder) {
+            var instance = initializingInstance || swappingInstance;
+            var tryFirstRender = !!swappingInstance;
+
+            var hookedInit = function (args) {
+                var initialStateTuple = init(args);
+                if (swappingInstance) {
+                    var oldModel = swappingInstance.lastState;
+                    var newModel = initialStateTuple.a;
+
+                    if (typeof elmSymbol("elm$browser$Browser$application") !== 'undefined') {
+                        // attempt to find the Browser.Navigation.Key in the newly-constructed model
+                        // and bring it along with the rest of the old data.
+                        var newKeyLoc = findNavKey(newModel);
+                        var error = null;
+                        if (newKeyLoc === null) {
+                            error = "could not find Browser.Navigation.Key in the new app model";
+                        } else if (instance.navKeyPath === null) {
+                            error = "could not find Browser.Navigation.Key in the old app model.";
+                        } else if (newKeyLoc.keypath.toString() !== instance.navKeyPath.toString()) {
+                            error = "the location of the Browser.Navigation.Key in the model has changed.";
+                        } else {
+                            var oldNavKey = getAt(instance.navKeyPath, oldModel);
+                            if (oldNavKey === null) {
+                                error = "keypath " + instance.navKeyPath + " is invalid. Please report a bug."
+                            } else {
+                                // remove event listeners attached to the old nav key
+                                removeNavKeyListeners(oldNavKey);
+
+                                // insert the new nav key into the old model in the exact same location
+                                var parentKeyPath = newKeyLoc.keypath.slice(0, -1);
+                                var lastSegment = newKeyLoc.keypath.slice(-1)[0];
+                                var oldParent = getAt(parentKeyPath, oldModel);
+                                oldParent[lastSegment] = newKeyLoc.value;
+                            }
+                        }
+
+                        if (error !== null) {
+                            console.error("[elm-hot] Hot-swapping " + instance.path + " not possible: " + error);
+                            oldModel = newModel;
+                        }
+                    }
+
+                    // the heart of the app state hot-swap
+                    initialStateTuple.a = oldModel;
+
+                    // ignore any Cmds returned by the init during hot-swap
+                    initialStateTuple.b = elmSymbol("elm$core$Platform$Cmd$none");
+                } else {
+                    // capture the initial state for later
+                    initializingInstance.lastState = initialStateTuple.a;
+
+                    // capture Browser.application's navigation key for later
+                    if (typeof elmSymbol("elm$browser$Browser$application") !== 'undefined') {
+                        var navKeyLoc = findNavKey(initializingInstance.lastState);
+                        if (!navKeyLoc) {
+                            console.error("[elm-hot] Hot-swapping disabled for " + instance.path
+                                + ": could not find Browser.Navigation.Key in your model.");
+                            instance.navKeyPath = null;
+                        } else {
+                            instance.navKeyPath = navKeyLoc.keypath;
+                        }
+                    }
+                }
+
+                return initialStateTuple
+            };
+
+            var hookedStepperBuilder = function (sendToApp, model) {
+                var result;
+                // first render may fail if shape of model changed too much
+                if (tryFirstRender) {
+                    tryFirstRender = false;
+                    try {
+                        result = stepperBuilder(sendToApp, model)
+                    } catch (e) {
+                        throw new Error('[elm-hot] Hot-swapping ' + instance.path +
+                            ' is not possible, please reload page. Error: ' + e.message)
+                    }
+                } else {
+                    result = stepperBuilder(sendToApp, model)
+                }
+
+                return function (nextModel, isSync) {
+                    if (instance) {
+                        // capture the state after every step so that later we can restore from it during a hot-swap
+                        instance.lastState = nextModel
+                    }
+                    return result(nextModel, isSync)
+                }
+            };
+
+            return initialize(flagDecoder, args, hookedInit, update, subscriptions, hookedStepperBuilder)
+        };
+
+        // hook process creation
+        var originalBinding = _Scheduler_binding;
+        _Scheduler_binding = function (originalCallback) {
+            return originalBinding(function () {
+                // start the scheduled process, which may return a cancellation function.
+                var cancel = originalCallback.apply(this, arguments);
+                if (cancel) {
+                    cancellers.push(cancel);
+                    return function () {
+                        cancellers.splice(cancellers.indexOf(cancel), 1);
+                        return cancel();
+                    };
+                }
+                return cancel;
+            });
+        };
+
+        scope['_elm_hot_loader_init'] = function (Elm) {
+            // swap instances
+            var removedInstances = [];
+            for (var id in instances) {
+                var instance = instances[id];
+                if (instance.domNode.parentNode) {
+                    swap(Elm, instance);
+                } else {
+                    removedInstances.push(id);
+                }
+            }
+
+            removedInstances.forEach(function (id) {
+                delete instance[id];
+            });
+
+            // wrap all public modules
+            var publicModules = findPublicModules(Elm);
+            publicModules.forEach(function (m) {
+                wrapPublicModule(m.path, m.module);
+            });
+        }
+    })();
+
+    scope['_elm_hot_loader_init'](scope['Elm']);
+}
+//////////////////// HMR END ////////////////////
+
+
+}(this));

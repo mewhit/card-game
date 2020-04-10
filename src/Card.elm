@@ -1,7 +1,9 @@
-module Card exposing (Card(..), toString, value, svg, top)
+module Card exposing (Card(..), toString, value, svg, top, decoder, encode)
 
 import Html exposing (img, Html)
 import Html.Attributes exposing (src)
+import Json.Decode as Decode
+import Json.Encode as Encode
 
 type Card
     = OneClubs Int
@@ -12,7 +14,7 @@ type Card
     | SixClubs Int
     | SevenClubs Int
     | HeightClubs Int
-    | NiveClubs Int
+    | NineClubs Int
     | TenClubs Int
     | ValetClubs Int
     | ReineClubs Int
@@ -26,7 +28,7 @@ type Card
     | SixDiamond Int
     | SevenDiamond Int
     | HeightDiamond Int
-    | NiveDiamond Int
+    | NineDiamond Int
     | TenDiamond Int
     | ValetDiamond Int
     | ReineDiamond Int
@@ -40,7 +42,7 @@ type Card
     | SixHearts Int
     | SevenHearts Int
     | HeightHearts Int
-    | NiveHearts Int
+    | NineHearts Int
     | TenHearts Int
     | ValetHearts Int
     | ReineHearts Int
@@ -54,7 +56,7 @@ type Card
     | SixSpades Int
     | SevenSpades Int
     | HeightSpades Int
-    | NiveSpades Int
+    | NineSpades Int
     | TenSpades Int
     | ValetSpades Int
     | ReineSpades Int
@@ -88,7 +90,7 @@ value card =
         HeightClubs a -> 
             a
 
-        NiveClubs a -> 
+        NineClubs a -> 
             a
 
         TenClubs a -> 
@@ -127,7 +129,7 @@ value card =
         HeightDiamond a -> 
             a
 
-        NiveDiamond a -> 
+        NineDiamond a -> 
             a
 
         TenDiamond a -> 
@@ -166,7 +168,7 @@ value card =
         HeightHearts a -> 
             a
 
-        NiveHearts a -> 
+        NineHearts a -> 
             a
 
         TenHearts a -> 
@@ -205,7 +207,7 @@ value card =
         HeightSpades a -> 
             a
 
-        NiveSpades a -> 
+        NineSpades a -> 
             a
 
         TenSpades a -> 
@@ -247,7 +249,7 @@ top card =
         HeightClubs _ -> 
            img [ src "./assets/1B.svg" ] []
 
-        NiveClubs _ -> 
+        NineClubs _ -> 
            img [ src "./assets/1B.svg" ] []
 
         TenClubs _ -> 
@@ -286,7 +288,7 @@ top card =
         HeightSpades _ -> 
            img [ src  "./assets/1B.svg" ] []
 
-        NiveSpades _ -> 
+        NineSpades _ -> 
            img [ src  "./assets/1B.svg" ] []
 
         TenSpades _ -> 
@@ -330,7 +332,7 @@ svg card =
         HeightClubs _ -> 
            img [ src "./assets/8C.svg" ] []
 
-        NiveClubs _ -> 
+        NineClubs _ -> 
            img [ src "./assets/9C.svg" ] []
 
         TenClubs _ -> 
@@ -369,7 +371,7 @@ svg card =
         HeightDiamond _ -> 
            img [ src "./assets/8D.svg" ] []
 
-        NiveDiamond _ -> 
+        NineDiamond _ -> 
            img [ src "./assets/9D.svg" ] []
 
         TenDiamond _ -> 
@@ -408,7 +410,7 @@ svg card =
         HeightHearts _ -> 
            img [ src "./assets/8H.svg" ] []
 
-        NiveHearts _ -> 
+        NineHearts _ -> 
            img [ src "./assets/9H.svg" ] []
 
         TenHearts _ -> 
@@ -447,7 +449,7 @@ svg card =
         HeightSpades _ -> 
            img [ src "./assets/8S.svg" ] []
 
-        NiveSpades _ -> 
+        NineSpades _ -> 
            img [ src "./assets/9S.svg" ] []
 
         TenSpades _ -> 
@@ -488,8 +490,8 @@ toString n =
         HeightClubs _ ->
             "Height Clubs"
 
-        NiveClubs _ ->
-            "Nive Clubs"
+        NineClubs _ ->
+            "Nine Clubs"
 
         TenClubs _ ->
             "Ten Clubs"
@@ -527,8 +529,8 @@ toString n =
         HeightDiamond _ ->
             "Height Diamond"
 
-        NiveDiamond _ ->
-            "Nive Diamond"
+        NineDiamond _ ->
+            "Nine Diamond"
 
         TenDiamond _ ->
             "Ten Diamond"
@@ -566,8 +568,8 @@ toString n =
         HeightHearts _ ->
             "Height Hearts"
 
-        NiveHearts _ ->
-            "Nive Hearts"
+        NineHearts _ ->
+            "Nine Hearts"
 
         TenHearts _ ->
             "Ten Hearts"
@@ -605,8 +607,8 @@ toString n =
         HeightSpades _ ->
             "Height Spades"
 
-        NiveSpades _ ->
-            "Nive Spades"
+        NineSpades _ ->
+            "Nine Spades"
 
         TenSpades _ ->
             "Ten Spades"
@@ -619,3 +621,126 @@ toString n =
 
         RoiSpades _ ->
             "Roi Spades"
+
+encode: Card -> Encode.Value
+encode card = 
+    Encode.object [
+        ("card", Encode.string (toString card))
+        , ("value", Encode.int (value card) )
+    ]
+decoder: Decode.Decoder Card
+decoder  = 
+    Decode.field "card" Decode.string 
+        |> Decode.andThen (\card -> 
+            case card of
+                "One Clubs" -> 
+                    Decode.map OneClubs (Decode.field "value" Decode.int)
+                "Two Clubs" -> 
+                    Decode.map TwoClubs (Decode.field "value" Decode.int)
+                "Three Clubs" -> 
+                    Decode.map ThreeClubs (Decode.field "value" Decode.int)
+                "Four Clubs" -> 
+                    Decode.map FourClubs (Decode.field "value" Decode.int)
+                "Five Clubs" -> 
+                    Decode.map FiveClubs (Decode.field "value" Decode.int)
+                "Six Clubs" -> 
+                    Decode.map SixClubs (Decode.field "value" Decode.int)
+                "Seven Clubs" -> 
+                    Decode.map SevenClubs (Decode.field "value" Decode.int)
+                "Height Clubs" -> 
+                    Decode.map HeightClubs (Decode.field "value" Decode.int)
+                "Nine Clubs" -> 
+                    Decode.map NineClubs (Decode.field "value" Decode.int)
+                "Ten Clubs" -> 
+                    Decode.map TenClubs (Decode.field "value" Decode.int)
+                "Valet Clubs" -> 
+                    Decode.map ValetClubs (Decode.field "value" Decode.int)
+                "Reine Clubs" -> 
+                    Decode.map ReineClubs (Decode.field "value" Decode.int)
+                "Roi Clubs" -> 
+                    Decode.map RoiClubs (Decode.field "value" Decode.int)
+                -- Diamond
+                "One Diamond" -> 
+                    Decode.map OneDiamond (Decode.field "value" Decode.int)
+                "Two Diamond" -> 
+                    Decode.map TwoDiamond (Decode.field "value" Decode.int)
+                "Three Diamond" -> 
+                    Decode.map ThreeDiamond (Decode.field "value" Decode.int)
+                "Four Diamond" -> 
+                    Decode.map FourDiamond (Decode.field "value" Decode.int)
+                "Five Diamond" -> 
+                    Decode.map FiveDiamond (Decode.field "value" Decode.int)
+                "Six Diamond" -> 
+                    Decode.map SixDiamond (Decode.field "value" Decode.int)
+                "Seven Diamond" -> 
+                    Decode.map SevenDiamond (Decode.field "value" Decode.int)
+                "Height Diamond" -> 
+                    Decode.map HeightDiamond (Decode.field "value" Decode.int)
+                "Nine Diamond" -> 
+                    Decode.map NineDiamond (Decode.field "value" Decode.int)
+                "Ten Diamond" -> 
+                    Decode.map TenDiamond (Decode.field "value" Decode.int)
+                "Valet Diamond" -> 
+                    Decode.map ValetDiamond (Decode.field "value" Decode.int)
+                "Reine Diamond" -> 
+                    Decode.map ReineDiamond (Decode.field "value" Decode.int)
+                "Roi Diamond" -> 
+                    Decode.map RoiDiamond (Decode.field "value" Decode.int)
+
+                -- Hearts
+                "One Hearts" -> 
+                    Decode.map OneHearts (Decode.field "value" Decode.int)
+                "Two Hearts" -> 
+                    Decode.map TwoHearts (Decode.field "value" Decode.int)
+                "Three Hearts" -> 
+                    Decode.map ThreeHearts (Decode.field "value" Decode.int)
+                "Four Hearts" -> 
+                    Decode.map FourHearts (Decode.field "value" Decode.int)
+                "Five Hearts" -> 
+                    Decode.map FiveHearts (Decode.field "value" Decode.int)
+                "Six Hearts" -> 
+                    Decode.map SixHearts (Decode.field "value" Decode.int)
+                "Seven Hearts" -> 
+                    Decode.map SevenHearts (Decode.field "value" Decode.int)
+                "Height Hearts" -> 
+                    Decode.map HeightHearts (Decode.field "value" Decode.int)
+                "Nine Hearts" -> 
+                    Decode.map NineHearts (Decode.field "value" Decode.int)
+                "Ten Hearts" -> 
+                    Decode.map TenHearts (Decode.field "value" Decode.int)
+                "Valet Hearts" -> 
+                    Decode.map ValetHearts (Decode.field "value" Decode.int)
+                "Reine Hearts" -> 
+                    Decode.map ReineHearts (Decode.field "value" Decode.int)
+                "Roi Hearts" -> 
+                    Decode.map RoiHearts (Decode.field "value" Decode.int)
+                -- Spades
+                "One Spades" -> 
+                    Decode.map OneSpades (Decode.field "value" Decode.int)
+                "Two Spades" -> 
+                    Decode.map TwoSpades (Decode.field "value" Decode.int)
+                "Three Spades" -> 
+                    Decode.map ThreeSpades (Decode.field "value" Decode.int)
+                "Four Spades" -> 
+                    Decode.map FourSpades (Decode.field "value" Decode.int)
+                "Five Spades" -> 
+                    Decode.map FiveSpades (Decode.field "value" Decode.int)
+                "Six Spades" -> 
+                    Decode.map SixSpades (Decode.field "value" Decode.int)
+                "Seven Spades" -> 
+                    Decode.map SevenSpades (Decode.field "value" Decode.int)
+                "Height Spades" -> 
+                    Decode.map HeightSpades (Decode.field "value" Decode.int)
+                "Nine Spades" -> 
+                    Decode.map NineSpades (Decode.field "value" Decode.int)
+                "Ten Spades" -> 
+                    Decode.map TenSpades (Decode.field "value" Decode.int)
+                "Valet Spades" -> 
+                    Decode.map ValetSpades (Decode.field "value" Decode.int)
+                "Reine Spades" -> 
+                    Decode.map ReineSpades (Decode.field "value" Decode.int)
+                "Roi Spades" -> 
+                    Decode.map RoiSpades (Decode.field "value" Decode.int)
+                _ -> 
+                    Decode.fail ("Invalide card" ++ card)
+        )

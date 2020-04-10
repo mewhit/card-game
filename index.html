@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Main</title>
+	<link rel="stylesheet" href="./src/style.css">
+	<script src="main.js"></script>
+	<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+
+</head>
+
+<body>
+	<p id="server-time"></p>
+	<p id="message"></p>
+	<div id="elm"></div>
+
+	<script>
+		var app = Elm.Main.init({
+			node: document.getElementById('elm')
+		});
+
+		app.ports.sendData.subscribe(function (data) {
+			console.log(data);
+			socket.emit('game', data)
+		})
+
+
+		let socket = io.connect('http://localhost:3000/');
+		let el;
+
+		socket.on('time', (timeString) => {
+			el = document.getElementById('server-time');
+			el.innerHTML = 'Server time: ' + timeString;
+		});
+
+
+		socket.on("update game", (data) => {
+			console.log(data, app)
+			setTimeout(function(){app.ports.updateGame.send(data);},0);
+			
+		});
+	</script>
+</body>
+
+</html>
