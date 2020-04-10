@@ -17,15 +17,21 @@ const io = socketIO(server);
 io.on('connection', (socket) => {
   console.log('Client connected');
 
+
   socket.on('game', function (data) {
     console.log("emit the updated game", data)
     io.emit("update game", data)
   });
 
-
+  io.in('game').clients((err, clients) => {
+    console.log(clients); 
+  });
+  
   socket.on('disconnect', function () {
     io.emit('user disconnected');
   });
 });
+
+
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);

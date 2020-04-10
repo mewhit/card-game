@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "server": "npx nodemon server.js",
-    "client": "elm-live src/Main.elm --hot --start-page=./dev/index.html -- --output=./dev/main.js --debug",
+    "client": "elm-live src/Main.elm --hot --start-page=./dev/index.html -- --output=main.js --debug",
     "make": "elm make src/Main.elm --output=./public/js/main.js"
   },
   "keywords": [],
