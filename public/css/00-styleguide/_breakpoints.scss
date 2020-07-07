@@ -1,0 +1,9 @@
+$mq-medium-up: "only screen and (min-width: 64em)"; // 768px
+$mq-large-up: "only screen and (min-width: 75em)"; // 1200px
+$mq-xlarge-up: "only screen and (min-width: 92em)"; // 1440px
+$mq-xxlarge-up: "only screen and (min-width: 120em)"; // 1920px
+
+.test {
+  font-size: 50px ! important;
+  color: black;
+}

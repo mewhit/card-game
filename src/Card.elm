@@ -305,8 +305,8 @@ top card =
         _ -> 
             img [ src  "./assets/2B.svg" ] []
 
-svg : Card -> Html msg
-svg card = 
+svg : Card  -> Html msg
+svg card  = 
     case card of 
         OneClubs _ -> 
            img [ src "./assets/AC.svg" ] []

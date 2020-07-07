@@ -1,0 +1,12 @@
+$time-min:     100ms;
+$time-medium:  200ms;
+$time-half:    400ms;
+$time-max:     800ms;
+
+$easings: (
+        out: cubic-bezier(.3,.5,.25,1),
+        io: cubic-bezier(.4,.25,.3,1),
+        bounce: cubic-bezier(0.175,0.885,0.32,2),
+        reg: cubic-bezier(0.2, 1, 0.3, 1),
+        cubic-bezier: (0.455,0.030,0.515,0.955)
+);

@@ -1,10 +1,11 @@
-module Games.Battle exposing (battleCard, endTurn, endGame)
+module Games.Battle exposing (battleCard, endTurn, endGame, redistribute)
 
 import Card exposing (Card(..))
 import Dict exposing (Dict)
 import Game exposing (Game, Player)
 import List.Extra as List
 import Maybe.Extra as Maybe
+import Html exposing (p)
 
 
 battleCard : List Card
@@ -95,6 +96,17 @@ endTurn game =
 
     else
         game
+
+redistribute: Game -> Game
+redistribute game = 
+    { game | players = game.players |> Dict.map (\_ -> discardToHand) }
+
+discardToHand: Player -> Player
+discardToHand p =
+    if List.isEmpty p.hand then  
+        { p | hand = p.discard, discard = []}
+    else 
+        p
 next : Game -> Game
 next game =
     if game.playerTurn == (Dict.size game.players - 1) then
@@ -107,12 +119,9 @@ next game =
 endGame: Game -> Maybe Player
 endGame game = 
     let
-        isEmpty = \p -> List.isEmpty p.hand && List.isEmpty p.discard && (Maybe.isJust p.currentCard)
+        isEmpty = \p -> List.isEmpty p.hand && List.isEmpty p.discard && Maybe.isNothing p.currentCard
     in
-    if game.players |> Dict.values |> List.any isEmpty then
-        game.players |> Dict.values |> List.filter (\s -> not <|  isEmpty s) |> List.head
-    else
-        Nothing
+        game.players |> Dict.values |> List.filter isEmpty |> List.head
 
 removeFromPlayerDiscard : Int -> Card -> Dict Int Player -> Dict Int Player
 removeFromPlayerDiscard id card players =

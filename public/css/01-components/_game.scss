@@ -1,0 +1,34 @@
+.game {
+    font-size: $text-mobile-normal;
+    position: relative;
+    padding: 10px;
+    &__board {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    &__player {
+
+    }
+
+    &__winner {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    &__hand {
+        display: flex;
+        flex-direction: row;
+    }
+    &__summary {
+        background-color: cc(branding);
+        font-size: $text-mobile-small;
+        color: black;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 10px;
+    }
+}

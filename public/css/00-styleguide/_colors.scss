@@ -1,0 +1,47 @@
+$colors: (
+        default: (
+                bg: #F7F7F7,
+                bg-medium:#E7E7E7,
+                bg-dark: #05113a,
+                branding: #00B7E8,
+                branding-light: #9db5e9,
+                light: #ffffff
+        ),
+        dark: (
+                h400:#E7E7E7,
+                h500:#D0D7D8,
+                h800: #003341,
+                h900: #002530
+        ),
+        text: (
+                light: #FFFFFF,
+                medium:#8B95B4,
+                dark: #020D38
+        ),
+        notification: (
+                alert: #FF7070
+        ),
+        border: (
+                light: #F1F2F6,
+                medium: #C0C3D0,
+                dark: #061548
+        ),
+        form: (
+                switch-off: #4d718a,
+                switch-on: #3483fc
+        ),
+        alert: (
+                warning: #F0BB63,
+                success: #2CAB7E,
+                info: #00BDF7,
+                error: #FF6E69
+        ),
+        other: (
+                airbnb: #E4464C
+        )
+);
+
+
+body {
+  background-color: cc(bg);
+}

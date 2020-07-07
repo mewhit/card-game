@@ -14,6 +14,8 @@ const server = express()
 
 const io = socketIO(server);
 
+io.origins('*:*');
+
 io.on('connection', (socket) => {
   console.log('Client connected');
 

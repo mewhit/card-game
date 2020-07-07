@@ -1,0 +1,107 @@
+// --------------------------------
+// Margin
+// --------------------------------
+
+.margin-gutter {
+  margin-top: $gutter-width;
+}
+
+.margin-top-sm {
+  margin-top: $space-sm;
+}
+
+.margin-top-xl {
+  margin-top: $space-xl;
+}
+
+
+.margin-left-sm {
+  margin-left: $space-sm;
+}
+
+.margin-left-xs {
+  margin-left: $space-xs;
+}
+
+
+
+// --------------------------------
+// Break
+// --------------------------------
+
+.break {
+  display: block;
+}
+
+
+// --------------------------------
+// Typography - size
+// --------------------------------
+
+.text-xxxl {
+  font-size: $text-xxxl;
+}
+
+.text-xxl {
+  font-size: $text-xxl;
+}
+
+.text-xl {
+  font-size: $text-xl;
+}
+
+.text-lg {
+  font-size: $text-lg;
+}
+
+.text-md {
+  font-size: $text-md;
+}
+
+.text-sm {
+  font-size: $text-sm;
+}
+
+.text-xs {
+  font-size: $text-xs;
+}
+
+// Typography - weight
+
+.weight-light {
+  font-weight: $light;
+}
+
+.weight-regular {
+  font-weight: $regular;
+}
+
+.weight-medium {
+  font-weight: $medium;
+}
+
+.weight-semi-bold {
+  font-weight: $semi-bold;
+}
+
+.weight-bold {
+  font-weight: $bold;
+}
+
+
+// --------------------------------
+// opacity
+// --------------------------------
+
+.opacity-5 {
+  opacity: .5;
+}
+
+
+// --------------------------------
+// align
+// --------------------------------
+
+.middle {
+  vertical-align: middle;
+}

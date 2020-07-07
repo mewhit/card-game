@@ -1,0 +1,41 @@
+$typo-regular: 'Montserrat';
+
+$light:      300;
+$regular:    400;
+$medium:     500;
+$semi-bold:  600;
+$bold:       700;
+
+$text-xs :   12px;
+$text-sm :   14px;
+$text-md :   16px;
+$text-lg :   18px;
+$text-xl :   26px;
+$text-xxl :  36px;
+$text-xxxl : 68px;
+
+$text-mobile-normal: 100px;
+$text-mobile-small: 50px;
+
+$heading-lh: 1.2;
+$body-lh:1.4;
+
+
+html, body {
+  font-family: $typo-regular, Helvetica, arial, sans-serif;
+  font-weight: $light;
+  font-size: 100%;
+  -webkit-font-smoothing: antialiased;
+  line-height: $body-lh;
+  color: cc(medium, text);
+}
+
+a {
+  text-decoration: none;
+  //color: cc(branding);
+  font-weight: $semi-bold;
+}
+
+strong {
+  font-weight: $bold;
+}

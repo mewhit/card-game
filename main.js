@@ -10584,8 +10584,8 @@ var $elm$core$Basics$never = function (_v0) {
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Game$NotStarted = {$: 'NotStarted'};
 var $author$project$Main$initialModel = {gameState: $author$project$Game$NotStarted, playerIndex: 0, playerName: ''};
-var $author$project$Main$UpdateGame = function (a) {
-	return {$: 'UpdateGame', a: a};
+var $author$project$Main$SyncGame = function (a) {
+	return {$: 'SyncGame', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $author$project$Main$updateGame = _Platform_incomingPort('updateGame', $elm$json$Json$Decode$value);
@@ -10593,7 +10593,7 @@ var $author$project$Main$subscriptions = function (_v0) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
-				$author$project$Main$updateGame($author$project$Main$UpdateGame)
+				$author$project$Main$updateGame($author$project$Main$SyncGame)
 			]));
 };
 var $author$project$Game$EachPlayer = {$: 'EachPlayer'};
@@ -10816,6 +10816,9 @@ var $author$project$Game$WaitingForOpponent = function (a) {
 };
 var $author$project$Game$create = function (name) {
 	return $author$project$Game$WaitingForOpponent(name);
+};
+var $author$project$Game$Finished = function (a) {
+	return {$: 'Finished', a: a};
 };
 var $author$project$Game$Game = F4(
 	function (discard, cards, playerTurn, players) {
@@ -11175,32 +11178,26 @@ var $author$project$Game$decoder = A2(
 			case 'finished':
 				return A2(
 					$elm$json$Json$Decode$map,
-					$author$project$Game$WaitingForOpponent,
+					$author$project$Game$Finished,
 					A2($elm$json$Json$Decode$field, 'winner', $elm$json$Json$Decode$string));
 			default:
 				return $elm$json$Json$Decode$fail('Invalide state' + s);
 		}
 	},
 	A2($elm$json$Json$Decode$field, 'state', $elm$json$Json$Decode$string));
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
+var $author$project$Game$endGame = F2(
+	function (fn, gameState) {
+		if (gameState.$ === 'Started') {
+			var game = gameState.a;
+			var _v1 = fn(game);
+			if (_v1.$ === 'Just') {
+				var p = _v1.a;
+				return $author$project$Game$Finished(p.name);
 			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
+				return gameState;
 			}
+		} else {
+			return gameState;
 		}
 	});
 var $elm$core$List$filter = F2(
@@ -11223,27 +11220,22 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm_community$maybe_extra$Maybe$Extra$isJust = function (m) {
+var $elm_community$maybe_extra$Maybe$Extra$isNothing = function (m) {
 	if (m.$ === 'Nothing') {
-		return false;
-	} else {
 		return true;
+	} else {
+		return false;
 	}
 };
 var $author$project$Games$Battle$endGame = function (game) {
 	var isEmpty = function (p) {
-		return $elm$core$List$isEmpty(p.hand) && ($elm$core$List$isEmpty(p.discard) && $elm_community$maybe_extra$Maybe$Extra$isJust(p.currentCard));
+		return $elm$core$List$isEmpty(p.hand) && ($elm$core$List$isEmpty(p.discard) && $elm_community$maybe_extra$Maybe$Extra$isNothing(p.currentCard));
 	};
-	return A2(
-		$elm$core$List$any,
-		isEmpty,
-		$elm$core$Dict$values(game.players)) ? $elm$core$List$head(
+	return $elm$core$List$head(
 		A2(
 			$elm$core$List$filter,
-			function (s) {
-				return !isEmpty(s);
-			},
-			$elm$core$Dict$values(game.players))) : $elm$core$Maybe$Nothing;
+			isEmpty,
+			$elm$core$Dict$values(game.players)));
 };
 var $author$project$Game$map = F2(
 	function (fn, gameState) {
@@ -11270,9 +11262,9 @@ var $elm$core$Maybe$map = F2(
 		}
 	});
 var $author$project$Game$setDiscard = F2(
-	function (cards, player) {
+	function (cards, p) {
 		return _Utils_update(
-			player,
+			p,
 			{discard: cards});
 	});
 var $author$project$Games$Battle$addCardsToPlayerDiscard = F3(
@@ -11293,6 +11285,27 @@ var $author$project$Games$Battle$addCardsToPlayerDiscard = F3(
 			},
 			players);
 	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
 var $elm$core$List$all = F2(
 	function (isOkay, list) {
 		return !A2(
@@ -11300,6 +11313,13 @@ var $elm$core$List$all = F2(
 			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
 			list);
 	});
+var $elm_community$maybe_extra$Maybe$Extra$isJust = function (m) {
+	if (m.$ === 'Nothing') {
+		return false;
+	} else {
+		return true;
+	}
+};
 var $author$project$Games$Battle$next = function (game) {
 	return _Utils_eq(
 		game.playerTurn,
@@ -11816,9 +11836,6 @@ var $author$project$Game$init = F4(
 		}
 	});
 var $elm$core$Debug$log = _Debug_log;
-var $author$project$Game$Finished = function (a) {
-	return {$: 'Finished', a: a};
-};
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -11828,17 +11845,10 @@ var $elm$core$Maybe$andThen = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
-var $elm_community$maybe_extra$Maybe$Extra$isNothing = function (m) {
-	if (m.$ === 'Nothing') {
-		return true;
-	} else {
-		return false;
-	}
-};
 var $author$project$Game$setCurrentCard = F2(
-	function (card, player) {
+	function (card, p) {
 		return _Utils_update(
-			player,
+			p,
 			{
 				currentCard: $elm$core$Maybe$Just(card)
 			});
@@ -11851,8 +11861,8 @@ var $author$project$Game$addCurrentCard = F3(
 			function (mPlayer) {
 				return A2(
 					$elm$core$Maybe$map,
-					function (player) {
-						return A2($author$project$Game$setCurrentCard, card, player);
+					function (p) {
+						return A2($author$project$Game$setCurrentCard, card, p);
 					},
 					mPlayer);
 			},
@@ -11872,9 +11882,9 @@ var $elm_community$list_extra$List$Extra$remove = F2(
 		}
 	});
 var $author$project$Game$setHand = F2(
-	function (cards, player) {
+	function (cards, p) {
 		return _Utils_update(
-			player,
+			p,
 			{hand: cards});
 	});
 var $author$project$Game$removeCardFromPlayerHand = F3(
@@ -11885,11 +11895,11 @@ var $author$project$Game$removeCardFromPlayerHand = F3(
 			function (mPlayer) {
 				return A2(
 					$elm$core$Maybe$map,
-					function (player) {
+					function (p) {
 						return A2(
 							$author$project$Game$setHand,
-							A2($elm_community$list_extra$List$Extra$remove, card, player.hand),
-							player);
+							A2($elm_community$list_extra$List$Extra$remove, card, p.hand),
+							p);
 					},
 					mPlayer);
 			},
@@ -11908,10 +11918,10 @@ var $author$project$Game$playCard = F3(
 			});
 	});
 var $author$project$Game$play = F4(
-	function (endGame, playerIndex, card, gameState) {
+	function (fn, playerIndex, card, gameState) {
 		if (gameState.$ === 'Started') {
 			var game = gameState.a;
-			var _v1 = endGame(game);
+			var _v1 = fn(game);
 			if (_v1.$ === 'Just') {
 				var p = _v1.a;
 				return $author$project$Game$Finished(p.name);
@@ -11929,6 +11939,27 @@ var $author$project$Game$play = F4(
 			return gameState;
 		}
 	});
+var $author$project$Game$redistribute = F2(
+	function (fn, state) {
+		return A2($author$project$Game$map, fn, state);
+	});
+var $author$project$Games$Battle$discardToHand = function (p) {
+	return $elm$core$List$isEmpty(p.hand) ? _Utils_update(
+		p,
+		{discard: _List_Nil, hand: p.discard}) : p;
+};
+var $author$project$Games$Battle$redistribute = function (game) {
+	return _Utils_update(
+		game,
+		{
+			players: A2(
+				$elm$core$Dict$map,
+				function (_v0) {
+					return $author$project$Games$Battle$discardToHand;
+				},
+				game.players)
+		});
+};
 var $author$project$Main$sendData = _Platform_outgoingPort('sendData', $elm$core$Basics$identity);
 var $elm$core$Bitwise$xor = _Bitwise_xor;
 var $elm$random$Random$peel = function (_v0) {
@@ -12127,8 +12158,8 @@ var $author$project$Game$playerCards = F3(
 			function (mPlayer) {
 				return A2(
 					$elm$core$Maybe$map,
-					function (player) {
-						return A2($author$project$Game$setHand, cards, player);
+					function (p) {
+						return A2($author$project$Game$setHand, cards, p);
 					},
 					mPlayer);
 			},
@@ -12327,28 +12358,28 @@ var $author$project$Game$toJson = function (state) {
 									'players',
 									A2(
 										$elm$json$Json$Encode$list,
-										function (player) {
+										function (p) {
 											return $elm$json$Json$Encode$object(
 												_List_fromArray(
 													[
 														_Utils_Tuple2(
 														'name',
-														$elm$json$Json$Encode$string(player.name)),
+														$elm$json$Json$Encode$string(p.name)),
 														_Utils_Tuple2(
 														'hand',
-														A2($elm$json$Json$Encode$list, $author$project$Card$encode, player.hand)),
+														A2($elm$json$Json$Encode$list, $author$project$Card$encode, p.hand)),
 														_Utils_Tuple2(
 														'discard',
-														A2($elm$json$Json$Encode$list, $author$project$Card$encode, player.discard)),
+														A2($elm$json$Json$Encode$list, $author$project$Card$encode, p.discard)),
 														_Utils_Tuple2(
 														'position',
-														$elm$json$Json$Encode$int(player.position)),
+														$elm$json$Json$Encode$int(p.position)),
 														_Utils_Tuple2(
 														'currentCard',
 														A2(
 															$elm$core$Maybe$withDefault,
 															$elm$json$Json$Encode$null,
-															A2($elm$core$Maybe$map, $author$project$Card$encode, player.currentCard)))
+															A2($elm$core$Maybe$map, $author$project$Card$encode, p.currentCard)))
 													]));
 										},
 										$elm$core$Dict$values(game.players)))
@@ -12405,7 +12436,7 @@ var $author$project$Main$update = F2(
 				var cards = msg.a;
 				var m = A2(
 					$author$project$Game$start,
-					26,
+					2,
 					A4($author$project$Game$init, $author$project$Game$EachPlayer, cards, model.playerName, model.gameState));
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -12429,7 +12460,13 @@ var $author$project$Main$update = F2(
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 'EndTurn':
-				var m = A2($author$project$Game$endTurn, $author$project$Games$Battle$endTurn, model.gameState);
+				var m = A2(
+					$author$project$Game$endGame,
+					$author$project$Games$Battle$endGame,
+					A2(
+						$author$project$Game$redistribute,
+						$author$project$Games$Battle$redistribute,
+						A2($author$project$Game$endTurn, $author$project$Games$Battle$endTurn, model.gameState)));
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -12473,8 +12510,63 @@ var $elm$html$Html$Attributes$boolProperty = F2(
 	});
 var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
 var $elm$html$Html$fieldset = _VirtualDom_node('fieldset');
+var $elm$html$Html$footer = _VirtualDom_node('footer');
 var $elm$html$Html$label = _VirtualDom_node('label');
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
+var $author$project$Main$lobbyForm = F3(
+	function (labelText, setName, onCreate) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('lobby')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('lobby__form')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$label,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('lobby__label')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(labelText)
+								])),
+							A2(
+							$elm$html$Html$input,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('lobby__box'),
+									$elm$html$Html$Attributes$placeholder('Name'),
+									$elm$html$Html$Events$onInput(setName)
+								]),
+							_List_Nil),
+							A2(
+							$elm$html$Html$button,
+							_List_fromArray(
+								[
+									$elm$html$Html$Events$onClick(onCreate)
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Start now')
+								]))
+						]))
+				]));
+	});
+var $author$project$Game$player = F2(
+	function (index, game) {
+		return A2($elm$core$Dict$get, index, game.players);
+	});
 var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $elm$html$Html$Attributes$src = function (url) {
@@ -13127,78 +13219,36 @@ var $author$project$Main$view = function (model) {
 	var _v0 = model.gameState;
 	switch (_v0.$) {
 		case 'NotStarted':
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$label,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Your name ')
-							])),
-						A2(
-						$elm$html$Html$input,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$placeholder('name'),
-								$elm$html$Html$Events$onInput($author$project$Main$SetName)
-							]),
-						_List_Nil),
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Events$onClick($author$project$Main$Create)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Start now')
-							]))
-					]));
+			return A3($author$project$Main$lobbyForm, 'Your name ', $author$project$Main$SetName, $author$project$Main$Create);
 		case 'WaitingForOpponent':
 			var name = _v0.a;
 			return _Utils_eq(name, model.playerName) ? A2(
 				$elm$html$Html$div,
-				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text(' wait for opponent')
-					])) : A2(
-				$elm$html$Html$div,
-				_List_Nil,
+						$elm$html$Html$Attributes$class('lobby')
+					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text(name + ' wait for opponent '),
-						A2(
-						$elm$html$Html$input,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$placeholder('name'),
-								$elm$html$Html$Events$onInput($author$project$Main$SetName)
-							]),
-						_List_Nil),
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Events$onClick($author$project$Main$Init)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Start now')
-							]))
-					]));
+						$elm$html$Html$text('Waiting for opponent')
+					])) : A3($author$project$Main$lobbyForm, name + ' wait for opponent ', $author$project$Main$SetName, $author$project$Main$Init);
 		case 'Finished':
 			var winner = _v0.a;
 			return A2(
 				$elm$html$Html$div,
-				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Winner is ' + winner),
+						$elm$html$Html$Attributes$class('game game__winner')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Winner is ' + winner)
+							])),
 						A2(
 						$elm$html$Html$button,
 						_List_fromArray(
@@ -13207,14 +13257,17 @@ var $author$project$Main$view = function (model) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('replay')
+								$elm$html$Html$text('Replay')
 							]))
 					]));
 		default:
 			var game = _v0.a;
 			return A2(
 				$elm$html$Html$div,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('game')
+					]),
 				_List_fromArray(
 					[
 						A3(
@@ -13226,176 +13279,180 @@ var $author$project$Main$view = function (model) {
 								$elm$html$Html$Attributes$href('style.css')
 							]),
 						_List_Nil),
-						$elm$html$Html$text(
-						$elm$core$String$fromInt(game.playerTurn)),
 						A2(
 						$elm$html$Html$ul,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('board')
+								$elm$html$Html$Attributes$class('game__board')
 							]),
-						A2(
-							$elm$core$List$map,
-							function (_v1) {
-								var index = _v1.a;
-								var player = _v1.b;
-								return A2(
-									$elm$html$Html$div,
-									_List_Nil,
-									_List_fromArray(
+						$elm$core$List$concat(
+							A2(
+								$elm$core$List$map,
+								function (_v1) {
+									var index = _v1.a;
+									var player = _v1.b;
+									return _List_fromArray(
 										[
-											(!index) ? A2(
-											$elm$html$Html$fieldset,
-											_List_fromArray(
-												[
-													$elm$html$Html$Attributes$disabled(
-													!_Utils_eq(model.playerIndex, index))
-												]),
-											_List_fromArray(
-												[
-													A2(
-													$elm$html$Html$div,
-													_List_Nil,
+											function () {
+											if (!index) {
+												var topCard = $elm$core$List$head(player.hand);
+												return A2(
+													$elm$html$Html$fieldset,
 													_List_fromArray(
 														[
-															$elm$html$Html$text(player.name)
-														])),
-													A2(
-													$elm$html$Html$div,
-													_List_fromArray(
-														[
-															$elm$html$Html$Attributes$class('board')
-														]),
-													_List_fromArray(
-														[
-															function () {
-															var topCard = $elm$core$List$head(player.discard);
-															return A2(
-																$elm$html$Html$li,
-																_List_Nil,
-																_List_fromArray(
-																	[
-																		A2(
-																		$elm$core$Maybe$withDefault,
-																		$elm$html$Html$text(''),
-																		A2($elm$core$Maybe$map, $author$project$Card$svg, topCard)),
-																		$elm$html$Html$text(
-																		$elm$core$String$fromInt(
-																			$elm$core$List$length(player.hand)))
-																	]));
-														}(),
-															function () {
-															var topCard = $elm$core$List$head(player.hand);
-															return A2(
-																$elm$html$Html$button,
-																_List_fromArray(
-																	[
-																		$elm$html$Html$Events$onClick(
-																		A2($author$project$Main$Play, index, topCard))
-																	]),
-																_List_fromArray(
-																	[
-																		A2(
-																		$elm$core$Maybe$withDefault,
-																		$elm$html$Html$text(''),
-																		A2($elm$core$Maybe$map, $author$project$Card$top, topCard)),
-																		$elm$html$Html$text(
-																		$elm$core$String$fromInt(
-																			$elm$core$List$length(player.hand)))
-																	]));
-														}(),
-															A2(
-															$elm$html$Html$div,
-															_List_fromArray(
-																[
-																	$elm$html$Html$Events$onClick($author$project$Main$EndTurn)
-																]),
-															_List_fromArray(
-																[
-																	A2(
-																	$elm$core$Maybe$withDefault,
-																	$elm$html$Html$text(''),
-																	A2($elm$core$Maybe$map, $author$project$Card$svg, player.currentCard))
-																]))
-														]))
-												])) : A2(
-											$elm$html$Html$fieldset,
-											_List_fromArray(
-												[
-													$elm$html$Html$Attributes$disabled(
-													!_Utils_eq(model.playerIndex, index))
-												]),
-											_List_fromArray(
-												[
-													A2(
-													$elm$html$Html$div,
-													_List_Nil,
-													_List_fromArray(
-														[
-															$elm$html$Html$text(player.name)
-														])),
-													A2(
-													$elm$html$Html$div,
-													_List_fromArray(
-														[
-															$elm$html$Html$Attributes$class('board')
+															$elm$html$Html$Attributes$class('game__player'),
+															$elm$html$Html$Attributes$disabled(
+															!_Utils_eq(model.playerIndex, index))
 														]),
 													_List_fromArray(
 														[
 															A2(
 															$elm$html$Html$div,
+															_List_Nil,
 															_List_fromArray(
 																[
-																	$elm$html$Html$Events$onClick($author$project$Main$EndTurn)
-																]),
-															_List_fromArray(
-																[
-																	A2(
-																	$elm$core$Maybe$withDefault,
-																	$elm$html$Html$text(''),
-																	A2($elm$core$Maybe$map, $author$project$Card$svg, player.currentCard))
+																	$elm$html$Html$text(player.name)
 																])),
-															function () {
-															var topCard = $elm$core$List$head(player.hand);
-															return A2(
-																$elm$html$Html$button,
-																_List_fromArray(
-																	[
-																		$elm$html$Html$Events$onClick(
-																		A2($author$project$Main$Play, index, topCard))
-																	]),
-																_List_fromArray(
-																	[
-																		A2(
-																		$elm$core$Maybe$withDefault,
-																		$elm$html$Html$text(''),
-																		A2($elm$core$Maybe$map, $author$project$Card$top, topCard)),
-																		$elm$html$Html$text(
-																		$elm$core$String$fromInt(
-																			$elm$core$List$length(player.hand)))
-																	]));
-														}(),
-															function () {
-															var topCard = $elm$core$List$head(player.discard);
-															return A2(
-																$elm$html$Html$li,
-																_List_Nil,
-																_List_fromArray(
-																	[
-																		A2(
-																		$elm$core$Maybe$withDefault,
-																		$elm$html$Html$text(''),
-																		A2($elm$core$Maybe$map, $author$project$Card$svg, topCard)),
-																		$elm$html$Html$text(
-																		$elm$core$String$fromInt(
-																			$elm$core$List$length(player.hand)))
-																	]));
-														}()
-														]))
-												]))
-										]));
-							},
-							$elm$core$Dict$toList(game.players)))
+															A2(
+															$elm$html$Html$div,
+															_List_fromArray(
+																[
+																	$elm$html$Html$Attributes$class('game__hand')
+																]),
+															_List_fromArray(
+																[
+																	A2(
+																	$elm$html$Html$button,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$Events$onClick(
+																			A2($author$project$Main$Play, index, topCard))
+																		]),
+																	_List_fromArray(
+																		[
+																			A2(
+																			$elm$core$Maybe$withDefault,
+																			$elm$html$Html$text(''),
+																			A2($elm$core$Maybe$map, $author$project$Card$top, topCard))
+																		])),
+																	A2(
+																	$elm$html$Html$div,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$Events$onClick($author$project$Main$EndTurn)
+																		]),
+																	_List_fromArray(
+																		[
+																			A2(
+																			$elm$core$Maybe$withDefault,
+																			$elm$html$Html$text(''),
+																			A2($elm$core$Maybe$map, $author$project$Card$svg, player.currentCard))
+																		]))
+																]))
+														]));
+											} else {
+												return $elm$html$Html$text('');
+											}
+										}(),
+											function () {
+											if (index === 1) {
+												var topCard = $elm$core$List$head(player.hand);
+												return A2(
+													$elm$html$Html$fieldset,
+													_List_fromArray(
+														[
+															$elm$html$Html$Attributes$class('game__player'),
+															$elm$html$Html$Attributes$disabled(
+															!_Utils_eq(model.playerIndex, index))
+														]),
+													_List_fromArray(
+														[
+															A2(
+															$elm$html$Html$div,
+															_List_Nil,
+															_List_fromArray(
+																[
+																	$elm$html$Html$text(player.name)
+																])),
+															A2(
+															$elm$html$Html$div,
+															_List_fromArray(
+																[
+																	$elm$html$Html$Attributes$class('game__hand')
+																]),
+															_List_fromArray(
+																[
+																	A2(
+																	$elm$html$Html$div,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$Events$onClick($author$project$Main$EndTurn)
+																		]),
+																	_List_fromArray(
+																		[
+																			A2(
+																			$elm$core$Maybe$withDefault,
+																			$elm$html$Html$text(''),
+																			A2($elm$core$Maybe$map, $author$project$Card$svg, player.currentCard))
+																		])),
+																	A2(
+																	$elm$html$Html$button,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$Events$onClick(
+																			A2($author$project$Main$Play, index, topCard))
+																		]),
+																	_List_fromArray(
+																		[
+																			A2(
+																			$elm$core$Maybe$withDefault,
+																			$elm$html$Html$text(''),
+																			A2($elm$core$Maybe$map, $author$project$Card$top, topCard))
+																		]))
+																]))
+														]));
+											} else {
+												return $elm$html$Html$text('');
+											}
+										}()
+										]);
+								},
+								$elm$core$Dict$toList(game.players)))),
+						function () {
+						var mSelf = A2($author$project$Game$player, model.playerIndex, game);
+						if (mSelf.$ === 'Just') {
+							var self = mSelf.a;
+							return A2(
+								$elm$html$Html$footer,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('game__summary')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text(
+												'Your remaining cards: ' + $elm$core$String$fromInt(
+													$elm$core$List$length(self.hand)))
+											])),
+										A2(
+										$elm$html$Html$p,
+										_List_Nil,
+										_List_fromArray(
+											[
+												$elm$html$Html$text(
+												'In your discards: ' + $elm$core$String$fromInt(
+													$elm$core$List$length(self.discard)))
+											]))
+									]));
+						} else {
+							return $elm$html$Html$text('');
+						}
+					}()
 					]));
 	}
 };
@@ -13409,7 +13466,7 @@ var $author$project$Main$main = $elm$browser$Browser$element(
 		view: $author$project$Main$view
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"Start":["List.List Card.Card"],"Play":["Basics.Int","Maybe.Maybe Card.Card"],"Create":[],"Init":[],"SetName":["String.String"],"UpdateGame":["Json.Encode.Value"],"EndTurn":[]}},"Card.Card":{"args":[],"tags":{"OneClubs":["Basics.Int"],"TwoClubs":["Basics.Int"],"ThreeClubs":["Basics.Int"],"FourClubs":["Basics.Int"],"FiveClubs":["Basics.Int"],"SixClubs":["Basics.Int"],"SevenClubs":["Basics.Int"],"HeightClubs":["Basics.Int"],"NineClubs":["Basics.Int"],"TenClubs":["Basics.Int"],"ValetClubs":["Basics.Int"],"ReineClubs":["Basics.Int"],"RoiClubs":["Basics.Int"],"OneDiamond":["Basics.Int"],"TwoDiamond":["Basics.Int"],"ThreeDiamond":["Basics.Int"],"FourDiamond":["Basics.Int"],"FiveDiamond":["Basics.Int"],"SixDiamond":["Basics.Int"],"SevenDiamond":["Basics.Int"],"HeightDiamond":["Basics.Int"],"NineDiamond":["Basics.Int"],"TenDiamond":["Basics.Int"],"ValetDiamond":["Basics.Int"],"ReineDiamond":["Basics.Int"],"RoiDiamond":["Basics.Int"],"OneHearts":["Basics.Int"],"TwoHearts":["Basics.Int"],"ThreeHearts":["Basics.Int"],"FourHearts":["Basics.Int"],"FiveHearts":["Basics.Int"],"SixHearts":["Basics.Int"],"SevenHearts":["Basics.Int"],"HeightHearts":["Basics.Int"],"NineHearts":["Basics.Int"],"TenHearts":["Basics.Int"],"ValetHearts":["Basics.Int"],"ReineHearts":["Basics.Int"],"RoiHearts":["Basics.Int"],"OneSpades":["Basics.Int"],"TwoSpades":["Basics.Int"],"ThreeSpades":["Basics.Int"],"FourSpades":["Basics.Int"],"FiveSpades":["Basics.Int"],"SixSpades":["Basics.Int"],"SevenSpades":["Basics.Int"],"HeightSpades":["Basics.Int"],"NineSpades":["Basics.Int"],"TenSpades":["Basics.Int"],"ValetSpades":["Basics.Int"],"ReineSpades":["Basics.Int"],"RoiSpades":["Basics.Int"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}}}}})}});
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"Start":["List.List Card.Card"],"Play":["Basics.Int","Maybe.Maybe Card.Card"],"Create":[],"Init":[],"SetName":["String.String"],"SyncGame":["Json.Encode.Value"],"EndTurn":[]}},"Card.Card":{"args":[],"tags":{"OneClubs":["Basics.Int"],"TwoClubs":["Basics.Int"],"ThreeClubs":["Basics.Int"],"FourClubs":["Basics.Int"],"FiveClubs":["Basics.Int"],"SixClubs":["Basics.Int"],"SevenClubs":["Basics.Int"],"HeightClubs":["Basics.Int"],"NineClubs":["Basics.Int"],"TenClubs":["Basics.Int"],"ValetClubs":["Basics.Int"],"ReineClubs":["Basics.Int"],"RoiClubs":["Basics.Int"],"OneDiamond":["Basics.Int"],"TwoDiamond":["Basics.Int"],"ThreeDiamond":["Basics.Int"],"FourDiamond":["Basics.Int"],"FiveDiamond":["Basics.Int"],"SixDiamond":["Basics.Int"],"SevenDiamond":["Basics.Int"],"HeightDiamond":["Basics.Int"],"NineDiamond":["Basics.Int"],"TenDiamond":["Basics.Int"],"ValetDiamond":["Basics.Int"],"ReineDiamond":["Basics.Int"],"RoiDiamond":["Basics.Int"],"OneHearts":["Basics.Int"],"TwoHearts":["Basics.Int"],"ThreeHearts":["Basics.Int"],"FourHearts":["Basics.Int"],"FiveHearts":["Basics.Int"],"SixHearts":["Basics.Int"],"SevenHearts":["Basics.Int"],"HeightHearts":["Basics.Int"],"NineHearts":["Basics.Int"],"TenHearts":["Basics.Int"],"ValetHearts":["Basics.Int"],"ReineHearts":["Basics.Int"],"RoiHearts":["Basics.Int"],"OneSpades":["Basics.Int"],"TwoSpades":["Basics.Int"],"ThreeSpades":["Basics.Int"],"FourSpades":["Basics.Int"],"FiveSpades":["Basics.Int"],"SixSpades":["Basics.Int"],"SevenSpades":["Basics.Int"],"HeightSpades":["Basics.Int"],"NineSpades":["Basics.Int"],"TenSpades":["Basics.Int"],"ValetSpades":["Basics.Int"],"ReineSpades":["Basics.Int"],"RoiSpades":["Basics.Int"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}}}}})}});
 
 //////////////////// HMR BEGIN ////////////////////
 

@@ -3,9 +3,9 @@ port module Main exposing (main)
 import Browser
 import Card exposing (Card(..))
 import Dict as Dict
-import Game exposing (DiscardMode(..), GameState(..), create, endTurn, play, start)
+import Game exposing (DiscardMode(..), GameState(..), create, endTurn, play, start, endGame, redistribute)
 import Games.Battle as Battle
-import Html exposing (Html, br, button, div, img, input, label, li, text, ul, fieldset)
+import Html exposing (Html, br, button, div, fieldset, footer, img, input, label, li, text, ul, p)
 import Html.Attributes as Attrs exposing (class, classList, disabled, placeholder, src)
 import Html.Events exposing (onClick, onInput)
 import Json.Decode as Decode
@@ -39,7 +39,7 @@ type Msg
     | Create
     | Init
     | SetName String
-    | UpdateGame Encode.Value
+    | SyncGame Encode.Value
     | EndTurn
 
 
@@ -56,17 +56,15 @@ update msg model =
             in
             ( { model | gameState = m, playerIndex = 0 }, sendData (Game.toJson m) )
 
-
         Init ->
             ( model, shuffle Battle.battleCard |> Random.generate Start )
 
         Start cards ->
             let
                 m =
-                    Game.init EachPlayer cards model.playerName model.gameState |> start 26
+                    Game.init EachPlayer cards model.playerName model.gameState |> start 2
             in
             ( { model | gameState = m, playerIndex = 1 }, sendData (Game.toJson m) )
-
 
         Play index card ->
             case card of
@@ -86,11 +84,14 @@ update msg model =
         EndTurn ->
             let
                 m =
-                    model.gameState |> endTurn Battle.endTurn
+                    model.gameState 
+                        |> endTurn Battle.endTurn 
+                        |> redistribute Battle.redistribute
+                        |> endGame Battle.endGame 
             in
             ( { model | gameState = m }, sendData (Game.toJson m) )
 
-        UpdateGame encoded ->
+        SyncGame encoded ->
             let
                 gameState =
                     Decode.decodeValue Game.decoder encoded
@@ -118,84 +119,93 @@ update msg model =
 -- --         )
 
 
+lobbyForm : String -> (String -> Msg) -> Msg -> Html Msg
+lobbyForm labelText setName onCreate =
+    div [ class "lobby" ]
+        [ div [ class "lobby__form" ]
+            [ label [ class "lobby__label" ] [ text labelText ]
+            , input [ class "lobby__box", placeholder "Name", onInput setName ] []
+            , button [ onClick onCreate ] [ text "Start now" ]
+            ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     case model.gameState of
         NotStarted ->
-            div []
-                [ label [] [ text "Your name " ]
-                , input [ placeholder "name", onInput SetName ] []
-                , button [ onClick Create ] [ text "Start now" ]
-                ]
+            lobbyForm "Your name " SetName Create
 
         WaitingForOpponent name ->
             if name == model.playerName then
-                div [] [ text " wait for opponent" ]
+                div [ class "lobby" ] [ text "Waiting for opponent" ]
 
             else
-                div []
-                    [ name ++ " wait for opponent " |> text
-                    , input [ placeholder "name", onInput SetName ] []
-                    , button [ onClick Init ] [ text "Start now" ]
-                    ]
+                lobbyForm (name ++ " wait for opponent ") SetName Init
 
         Finished winner ->
-            div [] [ "Winner is " ++ winner |> text, button [ onClick Init ] [ text "replay" ] ]
+            div [ class "game game__winner"] [ p [] ["Winner is " ++ winner |> text], button [ onClick Init ] [ text "Replay" ] ]
 
         Started game ->
-            div []
+            div [ class "game" ]
                 [ Html.node "link" [ Attrs.rel "stylesheet", Attrs.href "style.css" ] []
-                , game.playerTurn |> String.fromInt |> text
                 , game.players
                     |> Dict.toList
                     |> List.map
                         (\( index, player ) ->
-                            div []
-                                [ if index == 0 then
-                                    fieldset [ disabled <| not <| model.playerIndex == index]
-                                        [ div [] [ text player.name ]
-                                        , div [ class "board"  ] 
-                                            [ let
-                                                topCard =
-                                                    List.head player.discard
-                                              in
-                                              li [] [ topCard |> Maybe.map Card.svg |> Maybe.withDefault (text ""), player.hand |> List.length |> String.fromInt |> text ]
-                                            , let
-                                                topCard =
-                                                    List.head player.hand
-                                              in
-                                              button [ onClick (Play index topCard) ] [ topCard |> Maybe.map Card.top |> Maybe.withDefault (text ""), player.hand |> List.length |> String.fromInt |> text ]
-                                            , div [ onClick EndTurn ] [ player.currentCard |> Maybe.map Card.svg |> Maybe.withDefault (text "") ]
-                                            ]
+                            [ if index == 0 then
+                                let
+                                    topCard =
+                                        List.head player.hand
+                                in
+                                fieldset [ class "game__player", disabled <| not <| model.playerIndex == index ]
+                                    [ div [] [ text player.name ]
+                                    , div [ class "game__hand" ]
+                                        [ button [ onClick (Play index topCard) ] [ topCard |> Maybe.map Card.top |> Maybe.withDefault (text "") ]
+                                        , div [ onClick EndTurn ] [ player.currentCard |> Maybe.map Card.svg |> Maybe.withDefault (text "") ]
                                         ]
+                                    ]
 
-                                  else
-                                    fieldset [ disabled <| not <| model.playerIndex == index]
-                                        [ div [] [ text player.name ]
-                                        , div
-                                            [ class "board"  ] 
-                                            [ div [ onClick EndTurn ] [ player.currentCard |> Maybe.map Card.svg |> Maybe.withDefault (text "") ]
-                                            , let
-                                                topCard =
-                                                    List.head player.hand
-                                              in
-                                              button [ onClick (Play index topCard) ] [ topCard |> Maybe.map Card.top |> Maybe.withDefault (text ""), player.hand |> List.length |> String.fromInt |> text ]
-                                            , let
-                                                topCard =
-                                                    List.head player.discard
-                                              in
-                                              li [] [ topCard |> Maybe.map Card.svg |> Maybe.withDefault (text ""), player.hand |> List.length |> String.fromInt |> text ]
-                                            ]
+                              else
+                                text ""
+                            , if index == 1 then
+                                let
+                                    topCard =
+                                        List.head player.hand
+                                in
+                                fieldset [ class "game__player", disabled <| not <| model.playerIndex == index ]
+                                    [ div [] [ text player.name ]
+                                    , div [ class "game__hand" ]
+                                        [ div [ onClick EndTurn ] [ player.currentCard |> Maybe.map Card.svg |> Maybe.withDefault (text "") ]
+                                        , button [ onClick (Play index topCard) ] [ topCard |> Maybe.map Card.top |> Maybe.withDefault (text "") ]
                                         ]
-                                ]
+                                    ]
+
+                              else
+                                text ""
+                            ]
                         )
-                    |> ul [ class "board" ]
+                    |> List.concat
+                    |> ul [ class "game__board" ]
+                , let
+                    mSelf =
+                        Game.player model.playerIndex game
+                  in
+                  case mSelf of
+                    Just self ->
+                        footer [ class "game__summary" ]
+                            [ p [] [text <| "Your remaining cards: " ++ String.fromInt (List.length self.hand)]
+                            , p [] [text <| "In your discards: " ++ String.fromInt (List.length self.discard)]
+                            ]
+
+                    Nothing ->
+                        text ""
                 ]
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.batch [ updateGame UpdateGame ]
+    Sub.batch [ updateGame SyncGame ]
 
 
 main : Program () Model Msg

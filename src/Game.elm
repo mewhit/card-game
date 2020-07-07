@@ -1,4 +1,4 @@
-module Game exposing (DiscardMode(..), Game, GameState(..), Player, create, endTurn, init,decoder, play, setDiscard, start, toJson)
+module Game exposing (DiscardMode(..), Game, GameState(..), Player, redistribute, endGame, player, create, endTurn, init,decoder, play, setDiscard, start, toJson)
 
 import Card as Card exposing (Card, value)
 import Dict exposing (Dict)
@@ -7,6 +7,7 @@ import Json.Encode as Encode
 import List.Extra as List
 import Maybe.Extra as Maybe
 import Random.List exposing (shuffle)
+import Html exposing (p)
 
 
 type DiscardMode
@@ -32,23 +33,23 @@ type alias Player =
 
 
 setName : String -> Player -> Player
-setName name player =
-    { player | name = name }
+setName name p =
+    { p | name = name }
 
 
 setHand : List Card -> Player -> Player
-setHand cards player =
-    { player | hand = cards }
+setHand cards p =
+    { p | hand = cards }
 
 
 setDiscard : List Card -> Player -> Player
-setDiscard cards player =
-    { player | discard = cards }
+setDiscard cards p =
+    { p | discard = cards }
 
 
 setCurrentCard : Card -> Player -> Player
-setCurrentCard card player =
-    { player | currentCard = Just card }
+setCurrentCard card p =
+    { p | currentCard = Just card }
 
 
 type GameState
@@ -67,12 +68,15 @@ map fn gameState =
         _ ->
             gameState
 
-
+redistribute: (Game -> Game) -> GameState -> GameState
+redistribute fn state = 
+    map fn state 
+    
 play : (Game -> Maybe Player) -> Int -> Card -> GameState -> GameState
-play endGame playerIndex card gameState =
+play fn playerIndex card gameState =
     case gameState of
         Started game ->
-            case endGame game of
+            case fn game of
                 Just p ->
                     Finished p.name
 
@@ -89,6 +93,23 @@ play endGame playerIndex card gameState =
         _ ->
             gameState
 
+endGame : (Game -> Maybe Player) -> GameState -> GameState
+endGame fn gameState = 
+    case gameState of
+        Started game ->
+            case fn game of
+                Just p ->
+                    Finished p.name
+
+                Nothing ->
+                    gameState
+
+        _ ->
+            gameState
+
+player: Int -> Game -> Maybe Player
+player index game = 
+        Dict.get index game.players
 
 endTurn : (Game -> Game) -> GameState -> GameState
 endTurn fn state =
@@ -107,22 +128,22 @@ discard card game =
 
 addCurrentCard : Int -> Card -> Dict Int Player -> Dict Int Player
 addCurrentCard id card players =
-    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\player -> player |> setCurrentCard card)) players
+    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\p -> p |> setCurrentCard card)) players
 
 
 addCardToPlayerDiscard : Int -> Card -> Dict Int Player -> Dict Int Player
 addCardToPlayerDiscard id card players =
-    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\player -> player |> setDiscard (card :: player.discard))) players
+    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\p -> p |> setDiscard (card :: p.discard))) players
 
 
 playerCards : Int -> List Card -> Dict Int Player -> Dict Int Player
 playerCards id cards players =
-    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\player -> player |> setHand cards)) players
+    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\p -> p |> setHand cards)) players
 
 
 removeCardFromPlayerHand : Int -> Card -> Dict Int Player -> Dict Int Player
 removeCardFromPlayerHand id card players =
-    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\player -> player |> setHand (List.remove card player.hand))) players
+    Dict.update id (\mPlayer -> mPlayer |> Maybe.map (\p -> p |> setHand (List.remove card p.hand))) players
 
 
 distribute : Int -> Game -> Game
@@ -193,13 +214,13 @@ toJson state =
                           , game.players
                                 |> Dict.values
                                 |> Encode.list
-                                    (\player ->
+                                    (\p ->
                                         Encode.object
-                                            [ ( "name", Encode.string player.name )
-                                            , ( "hand", Encode.list Card.encode player.hand   )
-                                            , ( "discard", Encode.list Card.encode player.discard  )
-                                            , ( "position", Encode.int player.position )
-                                            , ( "currentCard", player.currentCard |> Maybe.map  Card.encode |> Maybe.withDefault Encode.null )
+                                            [ ( "name", Encode.string p.name )
+                                            , ( "hand", Encode.list Card.encode p.hand   )
+                                            , ( "discard", Encode.list Card.encode p.discard  )
+                                            , ( "position", Encode.int p.position )
+                                            , ( "currentCard", p.currentCard |> Maybe.map  Card.encode |> Maybe.withDefault Encode.null )
                                             ]
                                     )
                           )
@@ -248,7 +269,7 @@ decoder =
                         Decode.succeed NotStarted
 
                     "finished" ->
-                        Decode.map WaitingForOpponent
+                        Decode.map Finished
                             (Decode.field "winner" Decode.string)
 
                     _ ->

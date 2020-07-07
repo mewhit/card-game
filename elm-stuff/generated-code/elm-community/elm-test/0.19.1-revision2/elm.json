@@ -2,7 +2,7 @@
     "type": "application",
     "source-directories": [
         "src",
-        "C:\\Users\\mikew\\AppData\\Local\\Yarn\\Data\\global\\node_modules\\elm-test\\elm\\src",
+        "..\\..\\..\\..\\..\\..\\..\\Users\\mikew\\AppData\\Local\\Yarn\\Data\\global\\node_modules\\elm-test\\elm\\src",
         "..\\..\\..\\..\\..\\src",
         "..\\..\\..\\..\\..\\tests"
     ],
